@@ -1,0 +1,17 @@
+--message TABLE
+
+DROP TABLE if exists message CASCADE;
+
+DROP SEQUENCE if exists messageSequence;
+CREATE SEQUENCE messageSequence START 1 minvalue 0;
+
+CREATE TABLE message (
+  message_id bigint DEFAULT nextval('messageSequence') NOT NULL,
+  user_name varchar NOT NULL,
+  message_date bigint NOT NULL,
+  message_value varchar NOT NULL,
+  message_type int NOT NULL,
+  user_password varchar NOT NULL,
+
+  CONSTRAINT message_pkey PRIMARY KEY(message_id)
+);

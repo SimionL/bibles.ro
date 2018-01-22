@@ -1,0 +1,18 @@
+DROP TABLE if exists participant CASCADE;
+
+DROP SEQUENCE if exists participantSequence;
+CREATE SEQUENCE participantSequence START 1 minvalue 0;
+
+CREATE TABLE participant (
+  participant_id bigint DEFAULT nextval('participantSequence') PRIMARY KEY NOT NULL,
+  name varchar NOT NULL,
+  forename varchar NOT NULL,
+  duration integer NOT NULL,
+  resourcespath varchar NOT NULL,
+  participantorder integer NOT NULL,
+  description varchar,
+  phone varchar,
+  email varchar,
+  participantresources varchar,
+  event_id bigint NOT NULL REFERENCES event(event_id)
+);

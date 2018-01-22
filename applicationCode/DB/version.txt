@@ -1,0 +1,13 @@
+﻿--version TABLE
+
+DROP TABLE if exists version CASCADE;
+
+DROP SEQUENCE if exists versionSequence;
+CREATE SEQUENCE versionSequence START 1 minvalue 0;
+
+CREATE TABLE version (
+  version_id bigint DEFAULT nextval('versionSequence') NOT NULL,
+  value varchar UNIQUE NOT NULL,
+ 
+  CONSTRAINT version_pkey PRIMARY KEY(version_id)
+);

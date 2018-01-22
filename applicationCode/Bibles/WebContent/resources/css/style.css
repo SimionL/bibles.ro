@@ -1,0 +1,32 @@
+@CHARSET "UTF-8";
+
+.closeIconClass{
+	height: 30px;
+	width:  30px;
+	cursor: pointer
+}
+.nextButton{
+	position: relative;
+	display: inline-block;
+	cursor: pointer
+}
+.backButton{
+	position: relative;
+	display: inline-block;
+	cursor: pointer
+}
+.position{
+	position: relative;
+	left: 1%;
+}
+.newWindow{
+	position: relative;
+	display: inline-block;
+	height: 35%;
+	width: 50%;
+	cursor: pointer
+}
+.tableClass{
+	overflow:hidden; 
+	white-space: nowrap;
+}

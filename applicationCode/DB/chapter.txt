@@ -1,0 +1,17 @@
+﻿--chapter TABLE
+
+DROP TABLE if exists chapter CASCADE;
+
+DROP SEQUENCE if exists chapterSequence;
+CREATE SEQUENCE chapterSequence START 1 minvalue 0;
+
+CREATE TABLE chapter (
+  chapter_id bigint DEFAULT nextval('chapterSequence') NOT NULL,
+  value int NOT NULL,
+  entirechapter varchar NOT NULL,
+  reference varchar, 
+  book_id bigint NOT NULL,
+
+  CONSTRAINT chapter_pkey PRIMARY KEY(chapter_id),
+  CONSTRAINT chapter_fkey FOREIGN KEY(book_id) REFERENCES book(book_id)
+);

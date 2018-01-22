@@ -1,0 +1,17 @@
+﻿--book TABLE
+
+DROP TABLE if exists book CASCADE;
+
+DROP SEQUENCE if exists bookSequence;
+CREATE SEQUENCE bookSequence START 1 minvalue 0;
+
+CREATE TABLE book (
+  book_id bigint DEFAULT nextval('bookSequence') NOT NULL,
+  value varchar NOT NULL,
+  book_no int NOT NULL,
+  description varchar,
+  version_id bigint NOT NULL,
+
+  CONSTRAINT book_pkey PRIMARY KEY(book_id),
+  CONSTRAINT book_fkey FOREIGN KEY(version_id) REFERENCES version(version_id)
+);

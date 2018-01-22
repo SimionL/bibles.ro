@@ -1,0 +1,17 @@
+DROP TABLE if exists event CASCADE;
+
+DROP SEQUENCE if exists eventSequence;
+CREATE SEQUENCE eventSequence START 1 minvalue 0;
+
+CREATE TABLE event (
+  event_id bigint DEFAULT nextval('eventSequence') PRIMARY KEY NOT NULL,
+  eventname varchar UNIQUE NOT NULL,
+  event_password varchar NOT NULL,
+  eventdescription varchar,
+  eventdate varchar,
+  eventhour varchar,
+  eventduration varchar NOT NULL,
+  folderpath varchar NOT NULL,
+
+  user_id bigint NOT NULL REFERENCES users(user_id)
+);
