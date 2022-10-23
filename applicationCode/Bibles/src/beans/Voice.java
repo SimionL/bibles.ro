@@ -36,7 +36,7 @@ public class Voice {
 	private transient boolean usingVoice;
 	private transient boolean openPopup;
 	private transient boolean voice_1;
-	private transient boolean enableSpeaking = true;
+	private transient boolean enableSpeaking;
 
 	public String getBible() {
 		return bible;

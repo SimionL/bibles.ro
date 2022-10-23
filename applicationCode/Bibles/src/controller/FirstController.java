@@ -1,4 +1,5 @@
 package controller;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -69,6 +70,7 @@ public class FirstController {
 	public ModelAndView first(ModelMap model, HttpServletRequest request, HttpServletResponse response){
 
 		try{
+
 			if(request != null && response != null && dao != null){
 				new Utilities().setFirstAcces(model, request, response, dao, null, null, "english", bible, settings, popup, reference, church, screensaver, code, voice, app, thankYou, feedback);
 			}

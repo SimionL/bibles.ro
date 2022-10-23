@@ -26,7 +26,8 @@ import dbBeans.Language;
 import dbBeans.MessageTable;
 import dbBeans.Participant;
 import dbBeans.ScreensaverTable;
-import utilities.Constants;
+import utilities.Constant;
+
 
 @Transactional
 @Repository("dao")
@@ -36,8 +37,8 @@ public class DAOImpl implements DAO {
 	@Autowired
 	private SessionFactory sessionFactory;
 
-	private final String bibleLog = Constants.bibleLog.value;
-	private final String platformType = Constants.platformType.value;
+	private final String bibleLog = Constant.bibleLog;
+	private final String platformType = Constant.platformType;
 
 	@SuppressWarnings("unchecked")
 	@Override
@@ -140,6 +141,34 @@ public class DAOImpl implements DAO {
 					seectedCategory = "others";
 					break;
 				}
+				case 9 : {
+					seectedCategory = "the knowledge of God";
+					break;
+				}
+				case 10 : {
+					seectedCategory = "how is God";
+					break;
+				}
+				case 11 : {
+					seectedCategory = "without fear";
+					break;
+				}
+				case 12 : {
+					seectedCategory = "listening in prayer";
+					break;
+				}
+				case 13 : {
+					seectedCategory = "how to find God wish";
+					break;
+				}
+				case 14 : {
+					seectedCategory = "God plan for man";
+					break;
+				}
+				case 15 : {
+					seectedCategory = "God answers";
+					break;
+				}
 				}
 			}
 
@@ -182,6 +211,14 @@ public class DAOImpl implements DAO {
 					TreeMap<Integer, ScreensaverTable> mapClouds =  new TreeMap<>();
 					TreeMap<Integer, ScreensaverTable> mapPigeons = new TreeMap<>();
 					TreeMap<Integer, ScreensaverTable> mapOthers =  new TreeMap<>();
+					TreeMap<Integer, ScreensaverTable> mapKnowledgeOfGod =  new TreeMap<>();
+					TreeMap<Integer, ScreensaverTable> mapHowIsGod =  new TreeMap<>();
+					TreeMap<Integer, ScreensaverTable> mapWithoutFear =  new TreeMap<>();
+					TreeMap<Integer, ScreensaverTable> mapListeningInPrayer =  new TreeMap<>();
+					TreeMap<Integer, ScreensaverTable> mapHowToFindGodWish =  new TreeMap<>();
+					TreeMap<Integer, ScreensaverTable> mapGodPlanForMan =  new TreeMap<>();
+					TreeMap<Integer, ScreensaverTable> mapGodAnswers =  new TreeMap<>();
+					
 					int maxSize = 0;
 					for(ScreensaverTable screensaver : screensaverList){
 						if(screensaver != null){
@@ -239,6 +276,55 @@ public class DAOImpl implements DAO {
 										}
 										break;
 									}
+									case "the knowledge of God" : {
+										mapKnowledgeOfGod.put(Integer.valueOf(pictureNumber), screensaver);
+										if(maxSize < mapKnowledgeOfGod.size()){
+											maxSize = mapKnowledgeOfGod.size();
+										}
+										break;
+									}
+									case "how is God" : {
+										mapHowIsGod.put(Integer.valueOf(pictureNumber), screensaver);
+										if(maxSize < mapHowIsGod.size()){
+											maxSize = mapHowIsGod.size();
+										}
+										break;
+									}
+									case "without fear" : {
+										mapWithoutFear.put(Integer.valueOf(pictureNumber), screensaver);
+										if(maxSize < mapWithoutFear.size()){
+											maxSize = mapWithoutFear.size();
+										}
+										break;
+									}
+									case "listening in prayer" : {
+										mapListeningInPrayer.put(Integer.valueOf(pictureNumber), screensaver);
+										if(maxSize < mapListeningInPrayer.size()){
+											maxSize = mapListeningInPrayer.size();
+										}
+										break;
+									}
+									case "how to find God wish" : {
+										mapHowToFindGodWish.put(Integer.valueOf(pictureNumber), screensaver);
+										if(maxSize < mapHowToFindGodWish.size()){
+											maxSize = mapHowToFindGodWish.size();
+										}
+										break;
+									}
+									case "God plan for man" : {
+										mapGodPlanForMan.put(Integer.valueOf(pictureNumber), screensaver);
+										if(maxSize < mapGodPlanForMan.size()){
+											maxSize = mapGodPlanForMan.size();
+										}
+										break;
+									}
+									case "God answers" : {
+										mapGodAnswers.put(Integer.valueOf(pictureNumber), screensaver);
+										if(maxSize < mapGodAnswers.size()){
+											maxSize = mapGodAnswers.size();
+										}
+										break;
+									}
 									}
 								}
 							}
@@ -266,6 +352,27 @@ public class DAOImpl implements DAO {
 							}
 							if(mapOthers.containsKey(pictueN)){
 								result.put(result.size() + 1, mapOthers.get(pictueN));
+							}
+							if(mapKnowledgeOfGod.containsKey(pictueN)){
+								result.put(result.size() + 1, mapKnowledgeOfGod.get(pictueN));
+							}
+							if(mapHowIsGod.containsKey(pictueN)){
+								result.put(result.size() + 1, mapHowIsGod.get(pictueN));
+							}	
+							if(mapWithoutFear.containsKey(pictueN)){
+								result.put(result.size() + 1, mapWithoutFear.get(pictueN));
+							}
+							if(mapListeningInPrayer.containsKey(pictueN)){
+								result.put(result.size() + 1, mapListeningInPrayer.get(pictueN));
+							}
+							if(mapHowToFindGodWish.containsKey(pictueN)){
+								result.put(result.size() + 1, mapHowToFindGodWish.get(pictueN));
+							}
+							if(mapGodPlanForMan.containsKey(pictueN)){
+								result.put(result.size() + 1, mapGodPlanForMan.get(pictueN));
+							}
+							if(mapGodAnswers.containsKey(pictueN)){
+								result.put(result.size() + 1, mapGodAnswers.get(pictueN));
 							}
 						}
 					}

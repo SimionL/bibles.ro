@@ -23,9 +23,9 @@ public enum Constants implements Serializable {
 	english("english"),
 	references("&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp"),
 
-	dburl(----------------------------------),
-	username(-------------------------------),
-	driver("org.postgresql.Driver"),
+	dburl(),
+	username(),
+	driver(),
 
 	//LOCAL---------------------------------------------------------------------------------
 	
@@ -33,7 +33,7 @@ public enum Constants implements Serializable {
 	eventsPath("C:\\events"),
 	bibleLog("C:\\BibleLog"),
 	platformType("\\"),
-	password(--------------------------------),
+	password(),
 	picturesPath("C:\\Users\\Laurentiu\\Desktop\\bible\\pictures\\");
 
 	//SERVER---------------------------------------------------------------------------------
@@ -42,7 +42,7 @@ public enum Constants implements Serializable {
 //	eventsPath("/opt/tomcat/events"),
 //	bibleLog("/opt/tomcat/BibleLog"),
 //	platformType("/"),
-//	password(---------------------------------------),
+//	password(),
 //	picturesPath("/opt/tomcat/screensaver");
 
 	private Constants(String value){

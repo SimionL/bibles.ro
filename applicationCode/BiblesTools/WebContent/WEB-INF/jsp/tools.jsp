@@ -12,6 +12,17 @@
 </head>
 <body>
 
+	<br>
+		<form method="POST" 
+			  action="translate" 
+			  enctype="application/x-www-form-urlencoded"
+			  accept-charset="UTF-8"
+		>
+	
+			<input type="submit" value="Translate" class="button" />
+
+		</form> 
+<%-- 
    <br>
    
 		<form method="POST" 
@@ -34,16 +45,6 @@
 			<input type="submit" value="Test database" class="button" />
 
 		</form> 
-		 <br>
-		<form method="POST" 
-			  action="translate" 
-			  enctype="application/x-www-form-urlencoded"
-			  accept-charset="UTF-8"
-		>
-	
-			<input type="submit" value="Translate" class="button" />
-
-		</form> 
 		
 		 <br>
 		<form method="POST" 
@@ -55,6 +56,6 @@
 			<input type="submit" value="count screensaver pictures" class="button" />
 
 		</form> 
-		<font color="green">${screensaver}</font>
+		<font color="green">${screensaver}</font> --%>
 </body>
 </html>

@@ -37,7 +37,7 @@
 		max-height: 100%;
 		word-wrap: break-word;
   		text-align: center;
-      }
+}
 
  .participantClass{
     	background: transparent;
@@ -49,7 +49,7 @@
 		max-height: 100%;
 		word-wrap: break-word;
   		text-align: left;
-      }
+}
 
 div.tab {
     overflow: hidden;

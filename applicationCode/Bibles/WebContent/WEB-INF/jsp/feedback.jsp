@@ -61,22 +61,6 @@ function arrayValidation(elems) {
 		word-wrap: break-word;
   		text-align: left;
 }
-.messageClass{
-    	background: transparent;
-    	border: 0 none white;
-    	font-size: 20px;
-		width: 100%;
-		max-width: 100%;
-		height: 30%;
-		max-height: 30%;
-		word-wrap: break-word;
-        overflow: hidden;
-        resize: none;
-		margin: 0;
-  		padding: 0;
-  		outline: 0;
-  		font-family: Times New Roman;
-}
 
 div.tab {
     overflow: hidden;
@@ -223,18 +207,11 @@ div.tab button.active {
 				<br><center><b><c:out value="${feedback.bugsLabel}" /></b></center><br>
 
            		<c:forEach items="${feedback.messageBugMap}" var="message">
-				
+
 					<c:if test="${not empty message}">
 
-<textarea class="messageClass">${message.value.userName}&nbsp;&nbsp;${message.value.messageStringDate}
-${message.value.messageValue}</textarea><br><br>
-
-								<script type="text/javascript" charset="utf-8">
-									$('.messageClass').load('insert',function(){
-									$(this).css('height','auto');
-									$(this).height(this.scrollHeight);
-									});
-								</script>
+						<br> <span style="word-wrap: break-word;"> ${message.value.userName}&nbsp;&nbsp;${message.value.messageStringDate} <br> ${message.value.messageValue} </span> <br><br>
+		
 					</c:if>
 
 				</c:forEach>
@@ -249,15 +226,8 @@ ${message.value.messageValue}</textarea><br><br>
 				
 					<c:if test="${not empty message}">
 
-<textarea class="messageClass">${message.value.userName}&nbsp;&nbsp;${message.value.messageStringDate}
-${message.value.messageValue}</textarea><br><br>
-
-								<script type="text/javascript" charset="utf-8">
-									$('.messageClass').load('insert',function(){
-									$(this).css('height','auto');
-									$(this).height(this.scrollHeight);
-									});
-								</script>
+						<br> <span style="word-wrap: break-word;"> ${message.value.userName}&nbsp;&nbsp;${message.value.messageStringDate} <br> ${message.value.messageValue} </span> <br><br>
+						
 					</c:if>
 
 				</c:forEach>
@@ -272,15 +242,8 @@ ${message.value.messageValue}</textarea><br><br>
 				
 					<c:if test="${not empty message}">
 
-<textarea class="messageClass">${message.value.userName}&nbsp;&nbsp;${message.value.messageStringDate}
-${message.value.messageValue}</textarea><br><br>
+						<br> <span style="word-wrap: break-word;"> ${message.value.userName}&nbsp;&nbsp;${message.value.messageStringDate} <br> ${message.value.messageValue} </span> <br><br>
 
-								<script type="text/javascript" charset="utf-8">
-									$('.messageClass').load('insert',function(){
-									$(this).css('height','auto');
-									$(this).height(this.scrollHeight);
-									});
-								</script>
 					</c:if>
 
 				</c:forEach>
@@ -297,19 +260,8 @@ ${message.value.messageValue}</textarea><br><br>
 
 						<c:out value="${message.value.userName}" />&nbsp;&nbsp;<c:out value="${message.value.messageStringDate}" /><br>
 						
-						<script type="text/javascript" charset="utf-8">
-						
-						</script>
+						<br> <span style="word-wrap: break-word;"> ${message.value.userName}&nbsp;&nbsp;${message.value.messageStringDate} <br> ${message.value.messageValue} </span> <br><br>
 
-<textarea class="messageClass">${message.value.userName}&nbsp;&nbsp;${message.value.messageStringDate}
-${message.value.messageValue}</textarea><br><br>
-
-								<script type="text/javascript" charset="utf-8">
-									$('.messageClass').load('insert',function(){
-									$(this).css('height','auto');
-									$(this).height(this.scrollHeight);
-									});
-								</script>
 					</c:if>
 
 				</c:forEach>
@@ -324,15 +276,8 @@ ${message.value.messageValue}</textarea><br><br>
 				
 					<c:if test="${not empty message}">
 
-<textarea class="messageClass">${message.value.userName}&nbsp;&nbsp;${message.value.messageStringDate}
-${message.value.messageValue}</textarea><br><br>
+						<br> <span style="word-wrap: break-word;"> ${message.value.userName}&nbsp;&nbsp;${message.value.messageStringDate} <br> ${message.value.messageValue} </span> <br><br>
 
-								<script type="text/javascript" charset="utf-8">
-									$('.messageClass').load('insert',function(){
-									$(this).css('height','auto');
-									$(this).height(this.scrollHeight);
-									});
-								</script>
 					</c:if>
 
 				</c:forEach>

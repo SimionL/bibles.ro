@@ -1,8 +1,15 @@
 package beans;
 
+import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
+
+import utilities.VerseDetails;
 
 public final class Bible{
 
@@ -17,14 +24,18 @@ public final class Bible{
 	private transient String feedback;
 	private transient String thankYou;
 
-	private transient LinkedHashMap<String, Map<String, String>> verseValue =  new LinkedHashMap<>();
+	private final transient List<VerseDetails> verseValue =  new LinkedList<>();
 	private transient Map<String, String> historyMap = new LinkedHashMap<>();
 	private transient LinkedHashSet<String> versions;
 	private transient LinkedHashSet<String> books;
 	private transient LinkedHashSet<String> chapters;
 	private transient LinkedHashSet<String> verses;
+	private transient TreeSet<String> profiles = new TreeSet<>(Arrays.asList("1", "2", "3"));
+	private final transient Set<String> email = new LinkedHashSet<>();
 
 	private transient String eventId;
+	private transient String selectedProfile = "1";
+	private transient String selectedOldProfile;
 	private transient String selectedVersion;
 	private transient String selectedBook;
 	private transient String selectedChapter;
@@ -50,18 +61,40 @@ public final class Bible{
 	private transient String history;
 	private transient String searchHistory;
 	private transient String error;
+	private transient String ok;
 	private transient String popupInformation;
 	private transient String popupId;
 	private transient String curentDisplay;
 	private transient String identifiedWords = "";
 	private transient String languageCode;
 	private transient String theSpokenWords;
+	private transient String searchByReference;
+	private transient String searchByText;
+	private transient String placeholderSuggestion;
+	private transient String placeholderReference = "mat 2 5";
+	private transient String okEmail;
+	private transient String emailNotExist = "Email not exist. Please add a valid email address!";
+	private transient String phoneNotExist = "Phone not exist. Please add a valid phone number!";
+	private transient String emailNotSelected = "Please select an email address from this list:";
+	private transient String phoneNotSelected = "Please select a phone number from this list:";
+	private transient String selectBibleText = "Please select bible text!";
+	private transient String okPhone = "The phone message was sent at:";
 
-	private transient boolean openPopup;
-	private transient boolean searchTextAvailable;
-	private transient boolean usingVoice;
 	private transient boolean wordWrap;
+	private transient boolean selectAll;
+	private transient boolean openPopup;
+	private transient boolean usingVoice;
 	private transient boolean displayReference;
+	private transient boolean searchTextAvailable;
+
+	// load email settings
+
+	private String messagesEncapsulation;
+	private String userEmail;
+	private String automatSendMessage;
+	private int emailFrom = 1;
+	private boolean firstAccess = true;
+
 
 	public boolean isDisplayReference() {
 		return displayReference;
@@ -231,12 +264,8 @@ public final class Bible{
 		this.verses = verses;
 	}
 
-	public LinkedHashMap<String, Map<String, String>> getVerseValue() {
+	public List<VerseDetails> getVerseValue() {
 		return verseValue;
-	}
-
-	public void setVerseValue(LinkedHashMap<String, Map<String, String>> verseValue) {
-		this.verseValue = verseValue;
 	}
 
 	public String getSearchVerse() {
@@ -367,6 +396,14 @@ public final class Bible{
 		this.error = error;
 	}
 
+	public String getOk() {
+		return ok;
+	}
+
+	public void setOk(String ok) {
+		this.ok = ok;
+	}
+
 	public String getPopupInformation() {
 		return popupInformation;
 	}
@@ -486,5 +523,164 @@ public final class Bible{
 	public void setThankYou(String thankYou) {
 		this.thankYou = thankYou;
 	}
-	
+
+	public String getSearchByReference() {
+		return searchByReference;
+	}
+
+	public void setSearchByReference(String searchByReference) {
+		this.searchByReference = searchByReference;
+	}
+
+	public String getSearchByText() {
+		return searchByText;
+	}
+
+	public void setSearchByText(String searchByText) {
+		this.searchByText = searchByText;
+	}
+
+	public String getPlaceholderSuggestion() {
+		return placeholderSuggestion;
+	}
+
+	public void setPlaceholderSuggestion(String placeholderSuggestion) {
+		this.placeholderSuggestion = placeholderSuggestion;
+	}
+
+	public String getPlaceholderReference() {
+		return placeholderReference;
+	}
+
+	public void setPlaceholderReference(String placeholderReference) {
+		this.placeholderReference = placeholderReference;
+	}
+
+	public String getOkEmail() {
+		return okEmail;
+	}
+
+	public void setOkEmail(String okEmail) {
+		this.okEmail = okEmail;
+	}
+
+	public int getEmailFrom() {
+		return emailFrom;
+	}
+
+	public void setEmailFrom(int emailFrom) {
+		this.emailFrom = emailFrom;
+	}
+
+	public String getMessagesEncapsulation() {
+		return messagesEncapsulation;
+	}
+
+	public void setMessagesEncapsulation(String messagesEncapsulation) {
+		this.messagesEncapsulation = messagesEncapsulation;
+	}
+
+	public String getUserEmail() {
+		return userEmail;
+	}
+
+	public void setUserEmail(String userEmail) {
+		this.userEmail = userEmail;
+	}
+
+	public String getAutomatSendMessage() {
+		return automatSendMessage;
+	}
+
+	public void setAutomatSendMessage(String automatSendMessage) {
+		this.automatSendMessage = automatSendMessage;
+	}
+
+	public boolean isFirstAccess() {
+		return firstAccess;
+	}
+
+	public void setFirstAccess(boolean firstAccess) {
+		this.firstAccess = firstAccess;
+	}
+
+	public String getEmailNotSelected() {
+		return emailNotSelected;
+	}
+
+	public void setEmailNotSelected(String emailNotSelected) {
+		this.emailNotSelected = emailNotSelected;
+	}
+
+	public String getEmailNotExist() {
+		return emailNotExist;
+	}
+
+	public void setEmailNotExist(String emailNotExist) {
+		this.emailNotExist = emailNotExist;
+	}
+
+	public String getSelectBibleText() {
+		return selectBibleText;
+	}
+
+	public void setSelectBibleText(String selectBibleText) {
+		this.selectBibleText = selectBibleText;
+	}
+
+	public String getPhoneNotExist() {
+		return phoneNotExist;
+	}
+
+	public void setPhoneNotExist(String phoneNotExist) {
+		this.phoneNotExist = phoneNotExist;
+	}
+
+	public String getPhoneNotSelected() {
+		return phoneNotSelected;
+	}
+
+	public void setPhoneNotSelected(String phoneNotSelected) {
+		this.phoneNotSelected = phoneNotSelected;
+	}
+
+	public String getOkPhone() {
+		return okPhone;
+	}
+
+	public void setOkPhone(String okPhone) {
+		this.okPhone = okPhone;
+	}
+
+	public boolean isSelectAll() {
+		return selectAll;
+	}
+
+	public void setSelectAll(boolean selectAll) {
+		this.selectAll = selectAll;
+	}
+
+	public Set<String> getEmail() {
+		return email;
+	}
+
+	public TreeSet<String> getProfiles() {
+		return profiles;
+	}
+
+	public String getSelectedProfile() {
+		return selectedProfile;
+	}
+
+	public void setSelectedProfile(String selectedProfile) {
+		this.selectedProfile = selectedProfile;
+	}
+
+	public String getSelectedOldProfile() {
+		return selectedOldProfile;
+	}
+
+	public void setSelectedOldProfile(String selectedOldProfile) {
+		this.selectedOldProfile = selectedOldProfile;
+	}
 }

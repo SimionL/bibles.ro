@@ -16,6 +16,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.servlet.ModelAndView;
 
+//import com.google.cloud.translate.Translate;
+//import com.google.cloud.translate.Translate.TranslateOption;
+//import com.google.cloud.translate.TranslateOptions;
+//import com.google.cloud.translate.TranslateOptions.Builder;
+//import com.google.cloud.translate.Translation;
+
 import beans.ApplicationCode;
 import beans.Bible;
 import beans.Church;
@@ -365,6 +371,87 @@ public class VoiceController {
 		return null;
 	}
 
+	//	final private String translateByApiKey(String text, final String from, final String to) {
+	//
+	//		try {
+	//			if(text != null && !text.trim().isEmpty() &&
+	//					from != null && !from.trim().isEmpty() &&	
+	//					to != null && !to.trim().isEmpty()
+	//					) {
+	//				final Builder builder = TranslateOptions.newBuilder();
+	//				if(builder != null) {
+	//					builder.setApiKey(Constant.translateApiKey);
+	//					final TranslateOptions tr = builder.build();
+	//					if(tr != null) {
+	//						final Translate translate = tr.getService();
+	//						if(translate != null) {
+	//							final Translation translation = translate.translate(text.trim(), TranslateOption.sourceLanguage(from.trim()), TranslateOption.targetLanguage(to.trim()));
+	//							if(translation != null) {
+	//								return translation.getTranslatedText();
+	//							}    
+	//						}
+	//					}
+	//				}	
+	//			}
+	//		}
+	//		catch(Exception e) {
+	//			new Utilities().writeFile(e);
+	//		}
+	//
+	//		return null;
+	//	}
+
+	final private String translateByUrl(String text, final String from, final String to) {
+
+		try {
+			String result = "";
+			String splitSign = "___________________";
+
+			Set<String> endSymbols = new HashSet<>();
+
+			endSymbols.add(".");
+			endSymbols.add("!");
+			endSymbols.add("?");
+			endSymbols.add(";");
+
+			if(endSymbols != null && !endSymbols.isEmpty()){
+
+				for(String symbol : endSymbols){
+					if(symbol != null && !symbol.trim().isEmpty() && text.contains(symbol.trim())){
+						text = text.replace(symbol.trim(), symbol.trim() + splitSign.trim());
+					}
+				}
+			}
+
+			String[] multipleSentences = text.split(splitSign.trim());
+
+			if(text.contains(splitSign.trim())){
+				text = text.replace(splitSign.trim(), "");
+			}
+
+			if(multipleSentences != null && multipleSentences.length > 0){
+				for(String sentence : multipleSentences){
+					if(sentence != null && !sentence.trim().isEmpty()){
+						result += getEncodedString(new Translator().callUrlAndParseResult(from, to, sentence));
+					}
+				}
+			}
+
+			if(result != null && !result.trim().isEmpty() && endSymbols != null && !endSymbols.isEmpty()){
+				for(String symbol : endSymbols){
+					if(symbol != null && !symbol.trim().isEmpty() && result.contains(symbol.trim())){
+						result = result.replace(symbol.trim(), symbol.trim() + " ");
+					}
+				}
+			}
+			return result;
+		}
+		catch(Exception e) {
+			new Utilities().writeFile(e);
+		}
+		return null;
+	}
+
 	private void prepareTranslationProcess(String text, final String from, final String to, final AppBean app) {
 
 		try {
@@ -374,45 +461,10 @@ public class VoiceController {
 
 				text = text.trim();
 
-				String translatedText = "";
-				String splitSign = "___________________";
+				String translatedText = null; //translateByApiKey(text, from, to);
 
-				Set<String> endSymbols = new HashSet<>();
-
-				endSymbols.add(".");
-				endSymbols.add("!");
-				endSymbols.add("?");
-				endSymbols.add(";");
-
-				if(endSymbols != null && !endSymbols.isEmpty()){
-
-					for(String symbol : endSymbols){
-						if(symbol != null && !symbol.trim().isEmpty() && text.contains(symbol.trim())){
-							text = text.replace(symbol.trim(), symbol.trim() + splitSign.trim());
-						}
-					}
-				}
-
-				String[] multipleSentences = text.split(splitSign.trim());
-
-				if(text.contains(splitSign.trim())){
-					text = text.replace(splitSign.trim(), "");
-				}
-
-				if(multipleSentences != null && multipleSentences.length > 0){
-					for(String sentence : multipleSentences){
-						if(sentence != null && !sentence.trim().isEmpty()){
-							translatedText += getEncodedString(new Translator().callUrlAndParseResult(from, to, sentence));
-						}
-					}
-				}
-
-				if(translatedText != null && !translatedText.trim().isEmpty() && endSymbols != null && !endSymbols.isEmpty()){
-					for(String symbol : endSymbols){
-						if(symbol != null && !symbol.trim().isEmpty() && translatedText.contains(symbol.trim())){
-							translatedText = translatedText.replace(symbol.trim(), symbol.trim() + " ");
-						}
-					}
+				if(translatedText == null || translatedText.trim().isEmpty()) {
+					translatedText = translateByUrl(text, from, to);
 				}
 
 				String code_1 = getCodeByLanguage(app, voice.getSelectedLanguage_1());

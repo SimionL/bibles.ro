@@ -10,7 +10,6 @@ import org.hibernate.SessionFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Scope;
 import org.springframework.context.support.ResourceBundleMessageSource;
 import org.springframework.http.converter.StringHttpMessageConverter;
@@ -24,7 +23,7 @@ import org.springframework.web.servlet.ViewResolver;
 import org.springframework.web.servlet.config.annotation.DefaultServletHandlerConfigurer;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
-import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.springframework.web.servlet.view.InternalResourceViewResolver;
 import org.springframework.web.servlet.view.JstlView;
 
@@ -45,15 +44,14 @@ import dbBeans.MessageTable;
 import dbBeans.Participant;
 import dbBeans.ScreensaverTable;
 import utilities.AppBean;
-import utilities.Constants;
+import utilities.Constant;
 
 @EnableWebMvc
 @Configuration
 @EnableScheduling
 @EnableTransactionManagement
-@Import({SecurityConfig.class})
 @ComponentScan(basePackages = {"dao","beans","config","controller"})
-public class ApplicationContextConfig extends WebMvcConfigurerAdapter{
+public class ApplicationContextConfig implements WebMvcConfigurer{
 
 	@Override
 	public void configureDefaultServletHandling(DefaultServletHandlerConfigurer configurer) {
@@ -100,10 +98,10 @@ public class ApplicationContextConfig extends WebMvcConfigurerAdapter{
 
 		final DriverManagerDataSource dataSource = new DriverManagerDataSource();
 
-		dataSource.setDriverClassName(Constants.driver.value);
-		dataSource.setUrl(Constants.dburl.value);
-		dataSource.setUsername(Constants.username.value);
-		dataSource.setPassword(Constants.password.value);
+		dataSource.setDriverClassName(Constant.driver);
+		dataSource.setUrl(Constant.dburl);
+		dataSource.setUsername(Constant.username);
+		dataSource.setPassword(Constant.password);
 
 		Properties properties = dataSource.getConnectionProperties();
 

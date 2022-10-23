@@ -1,5 +1,7 @@
 package controller;
 import java.io.File;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -18,6 +20,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
+import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -26,6 +29,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
+import org.springframework.web.bind.WebDataBinder;
+import org.springframework.web.bind.annotation.InitBinder;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.servlet.ModelAndView;
@@ -42,9 +47,11 @@ import beans.ThankYou;
 import beans.Voice;
 import utilities.AppBean;
 import utilities.Beans;
-import utilities.Constants;
+import utilities.Constant;
+import utilities.Message;
 import utilities.SearchDetails;
 import utilities.Utilities;
+import utilities.VerseDetails;
 
 @Controller
 @Scope("prototype")
@@ -83,8 +90,13 @@ public class BibleController {
 	@Autowired
 	private Feedback feedback;
 
-	private final String dbPath = Constants.dbPath.value;
-	private final String platformType = Constants.platformType.value;
+	private final String dbPath = Constant.dbPath;
+	private final String platformType = Constant.platformType;
+
+	@InitBinder
+	public void initBinder(WebDataBinder binder) {
+		binder.setAutoGrowCollectionLimit(10000);
+	}
 
 	@RequestMapping(value = "/be_blessed", method = RequestMethod.POST, headers = "content-type=multipart/form-data")
 	public ModelAndView bible(Bible bibleForm, ModelMap model, HttpServletRequest request, HttpServletResponse response){
@@ -98,12 +110,10 @@ public class BibleController {
 				response.setContentType("text/html; charset=UTF-8");
 
 				if(bible != null && settings != null && church != null){
-					Utilities utilities = new Utilities();
-					bible.setError(null);
-					bible.setIdentifiedWords(null);
 
-					new Utilities().cleanPopup(bible, church, settings, popup, reference, screensaver, code, voice, thankYou, feedback, bibleForm.isOpenPopup());
-					utilities.emptySelection(app);
+					before(bibleForm);
+
+					final Utilities utilities = new Utilities();
 
 					String eventId = bibleForm.getEventId();
 
@@ -193,6 +203,31 @@ public class BibleController {
 							utilities.setModel(model, null, null, null, null, null, null, null, null, thankYou, null);
 							return new ModelAndView("thankYou", model);
 						}
+						case "18" : {
+
+							sendMessage();
+
+							new Utilities().setModel(model, bible, null, null, null, null, null, null, null, null, null);
+							return new ModelAndView("bible", model);
+						}
+						case "19" : {
+
+							loadOldSettings(bibleForm);
+
+							break;
+						}
+						case "20" : {
+
+							selectAll(bibleForm);
+
+							break;
+						}
+						case "21" : {
+
+							selectProfile(bibleForm.getSelectedProfile());
+
+							break;
+						}
 						}
 
 						bibleForm.setEventId(null);
@@ -210,14 +245,17 @@ public class BibleController {
 
 					utilities.setPopupText(bible, church, reference, settings, popup, screensaver, app, code, Beans.bible);
 
-					final LinkedHashMap<String, Map<String, String>> audioValue = bible.getVerseValue();
+					final List<VerseDetails> audioValue = bible.getVerseValue();
 
 					String audio = "";
 
 					if(audioValue != null && !audioValue.isEmpty()) {
-						for(String verse : audioValue.keySet()) {
-							if(verse != null && !verse.trim().isEmpty()) {
-								audio += verse.trim() + " ";
+						for(VerseDetails vd : audioValue) {
+							if(vd != null) {
+								String verse = vd.getVerse();
+								if(verse != null && !verse.trim().isEmpty()) {
+									audio += verse.trim() + " ";
+								}
 							}
 						}
 					}
@@ -252,6 +290,15 @@ public class BibleController {
 					else {
 						bible.setTheSpokenWords(null);
 					}
+
+					String selectedBook = bible.getSelectedBook();
+					String selectedChapter = bible.getSelectedChapter();
+					String selectedVerse = bible.getSelectedVerse();
+
+					if(selectedBook != null && selectedChapter != null && selectedVerse != null &&
+							selectedChapter.matches("\\d+") && selectedVerse.matches("\\d+")){
+						bible.setPlaceholderReference(selectedBook + " " + selectedChapter +  " " + selectedVerse);
+					}
 				}
 			}
 		}
@@ -261,6 +308,389 @@ public class BibleController {
 
 		new Utilities().setModel(model, bible, null, null, null, null, null, null, null, null, null);
 		return new ModelAndView("bible", model);
+	}
+
+	private void selectAll(Bible bibleForm) {
+
+		try {
+			if(bible != null && bibleForm != null) {
+				final List<VerseDetails> verseValue = bible.getVerseValue();
+				bible.setSelectAll(bibleForm.isSelectAll());
+				if(verseValue != null && !verseValue.isEmpty()) {
+					verseValue.stream().filter(vd -> vd != null).forEach(v -> v.setSelected(bibleForm.isSelectAll()));
+				}
+			}
+		}
+		catch(Exception e){
+			new Utilities().writeFile(e);
+		}
+	}
+
+	private void before(Bible bibleForm) {
+
+		try {
+			if(bible != null) {
+
+				bible.setError(null);
+				bible.setOk(null);
+				bible.setIdentifiedWords(null);
+				new Utilities().emptySelection(app);
+
+				if(bibleForm != null) {
+
+					new Utilities().cleanPopup(bible, church, settings, popup, reference, screensaver, code, voice, thankYou, feedback, bibleForm.isOpenPopup());
+
+					List<VerseDetails> verseValue = bible.getVerseValue();
+
+					if(verseValue != null) {
+
+						List<VerseDetails> verseValueForm = bibleForm.getVerseValue();
+
+						if(verseValueForm != null && !verseValueForm.isEmpty()) {
+							final Set<String> email = bible.getEmail();
+							verseValueForm.stream().filter(v -> v != null).forEach(vers -> {
+
+								for(VerseDetails vd : verseValue) {
+									if(vd != null) {
+										String v = vd.getVerse();
+										if(v.equals(vers.getVerse())) {
+											vd.setSelected(vers.isSelected());
+
+											if(vd.isSelected()) {
+												email.add(getCurrentStringSelection());
+												email.add(v);
+											}
+											else {
+												email.remove(v);
+											}
+
+											break;
+										}
+									}
+								}
+							});
+						}
+					}
+				}
+			}
+		}
+		catch(Exception e){
+			new Utilities().writeFile(e);
+		}
+	}
+
+	private String getEmailsError() {
+
+		String error = "";
+
+		try {
+
+			final List<Message> messages = settings.getMessages();
+			List<Message> emails = null;
+
+			if(messages != null && !messages.isEmpty()) {
+				emails = messages.stream().filter(e -> e != null && e.isEmail() && e.getAddress() != null && !e.getAddress().trim().isEmpty()).collect(Collectors.toList());
+			}
+
+			if(emails == null || emails.isEmpty()) {
+				error += bible.getEmailNotExist() + "<br>";
+			}
+			else if(emails.stream().filter(e -> e != null && e.isSelected() && e.isEmail() && e.isSendEmail()).collect(Collectors.toList()).isEmpty()) {
+
+				error += bible.getEmailNotSelected() + "<br>" + getEmailsAddress(false);
+			}
+		}
+		catch(Exception e){
+			new Utilities().writeFile(e);
+		}
+
+		return error;
+	}
+
+	private String getPhonesError() {
+
+		String error = "";
+
+		try {
+
+			final List<Message> messages = settings.getMessages();
+			List<Message> phones = null;
+
+			if(messages != null && !messages.isEmpty()) {
+				phones = messages.stream().filter(p -> p != null && p.isPhone() && p.getAddress() != null && !p.getAddress().trim().isEmpty()).collect(Collectors.toList());
+			}
+
+			if(phones == null || phones.isEmpty()) {
+				error += bible.getPhoneNotExist() + "<br>";
+			}
+			else if(phones.stream().filter(p -> p != null && p.isSelected() && p.isPhone() && p.isSendPhone()).collect(Collectors.toList()).isEmpty()) {
+
+				error += bible.getPhoneNotSelected() + "<br>" + getPhoneAddress(false);
+			}
+		}
+		catch(Exception e){
+			new Utilities().writeFile(e);
+		}
+
+		return error;
+	}
+
+	private String getBibleTextError() {
+
+		try {
+
+			final List<VerseDetails> verseValue = bible.getVerseValue();
+
+			if(verseValue == null || verseValue.isEmpty()) {
+
+				return bible.getSelectBibleText() + "<br>";
+			}
+		}
+		catch(Exception e){
+			new Utilities().writeFile(e);
+		}
+
+		return "";
+	}
+
+	private String getCurrentStringSelection() {
+
+		String result = "";
+
+		try {
+
+			if(bible != null) {
+
+				String selectedVersion = bible.getSelectedVersion();
+				String selectedBook =    bible.getSelectedBook();
+				String selectedChapter = bible.getSelectedChapter();
+				String selectedVerse =   bible.getSelectedVerse();
+
+				if(new Utilities().isRealVersion(selectedVersion, bible)){
+					result += selectedVersion + " ";
+
+					if(new Utilities().isRealBook(selectedBook, bible)){
+						result += selectedBook + " ";
+
+						if(new Utilities().isRealChapter(selectedChapter, bible)){
+							result += selectedChapter;
+
+							if(new Utilities().isRealVerse(selectedVerse, bible)){
+								result += "." + selectedVerse;
+							}
+						}
+					}
+				}
+			}	
+		}
+		catch(Exception e){
+			new Utilities().writeFile(e);
+		}
+		return result;
+	}
+
+	private String getMessageVerse() {
+
+		String text = "";
+
+		try {
+			final Set<String> email = bible.getEmail();
+
+			if(email != null && !email.isEmpty()) {
+
+				for(String verse : email) {
+					if(verse != null && !verse.trim().isEmpty()) {
+						text += verse + "<br>";
+					}
+				}
+			}
+			else {
+				final List<VerseDetails> verseValue = bible.getVerseValue();
+
+				if(verseValue != null && !verseValue.isEmpty()){
+					text = getCurrentStringSelection();
+
+					for(VerseDetails vd: verseValue) {
+						if(vd != null) {
+							String verse = vd.getVerse();
+							if(verse != null && !verse.trim().isEmpty()) {
+								text += "<br>" + verse;
+								if(bible.isDisplayReference()) {
+									Map<String, String> reference = vd.getReferences();
+									if(reference != null && !reference.isEmpty()) {
+										text += "<br><br>" + bible.getReferences() + ":<br>";
+										for(String k : reference.keySet()) {
+											if(k != null && !k.trim().isEmpty()) {
+												text += "<br>";
+												text += k + " ";
+												String v = reference.get(k);
+												if(v != null && !v.trim().isEmpty()) {
+													text += v + " ";
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+		catch(Exception e){
+			new Utilities().writeFile(e);
+		}
+		return text;
+	}
+
+
+	private void sendMessage() {
+
+		try {
+			if(bible != null && settings != null) {
+
+				String verseError = getBibleTextError();
+
+				String emailError = getEmailsError();
+				String phoneError = getPhonesError();
+
+				final boolean isVerseError = verseError != null && !verseError.trim().isEmpty();
+				final boolean isEmailError = emailError != null && !emailError.trim().isEmpty();
+				final boolean isPhoneError = phoneError != null && !phoneError.trim().isEmpty();
+
+				if(isVerseError || (isEmailError && isPhoneError)) {
+
+					String error = "";
+
+					if(isVerseError) {
+						error = verseError;
+					}
+
+					if(isEmailError && isPhoneError) {
+						if(isEmailError) {
+							error += emailError;
+						}
+
+						if(isPhoneError) {
+							error += phoneError;
+						}	
+					}
+
+					bible.setError(error);
+				}
+				else {
+
+					String text = getMessageVerse();
+
+					String okMessage = "";
+
+					if(!isEmailError) {
+						sendEmail(text);
+						okMessage = bible.getOkEmail() + getEmailsAddress(true) + "<br>";
+						clearEmailSelection();
+					}
+
+					if(!isPhoneError) {
+						sendPhone(text);
+						okMessage += bible.getOkPhone() + getPhoneAddress(true) + "<br>";
+						clearEmailSelection();
+					}
+
+
+
+
+
+
+
+					bible.setOk(okMessage);
+				}
+			}
+		}
+		catch(Exception e){
+			new Utilities().writeFile(e);
+		}
+	}
+
+	private void clearEmailSelection() {
+
+		try {
+
+			if(bible != null) {
+
+				final Set<String> email = bible.getEmail();
+
+				if(email != null) {
+					email.clear();
+				}
+
+				bible.setSelectAll(false);
+
+				final List<VerseDetails> verseValue = bible.getVerseValue();
+
+				if(verseValue != null && !verseValue.isEmpty()) {
+					verseValue.stream()
+					.filter(verse -> verse != null)
+					.forEach(v -> v.setSelected(false));
+				}
+			}
+		}
+		catch(Exception e){
+			new Utilities().writeFile(e);
+		}
+	}
+
+	private void sendPhone(String text) {
+
+		try {
+
+			final String verse = text.replace("<br>", "\n");
+
+			final List<Message> phones = settings.getMessages().parallelStream().filter(e -> e != null && e.isPhone() && e.isSelected() && e.isSendPhone() && e.getAddress() != null && !e.getAddress().trim().isEmpty()).collect(Collectors.toList());
+
+			Thread t = new Thread(new Runnable() {
+
+				@Override
+				public void run() {
+					try {
+						for(Message message: phones) {
+
+							String title = message.getTitle();
+							String content = message.getMessage(); 
+
+							if(title == null || title.trim().isEmpty()) {
+								title = settings.getDefaultMessageTitle();
+							}
+
+							if(content == null || content.trim().isEmpty()) {
+								content = settings.getDefaultMessageContent();
+							}
+
+							String apiKey = "apikey=" + Constant.apikKey;
+							String smsText = "&message=" + title + "\n" + content+ "\n" + verse;
+							String sender = "&sender=" + "www.bibles.ro";
+							String numbers = "&numbers=" + message.getAddress().trim();
+
+							final HttpURLConnection conn = (HttpURLConnection) new URL("https://api.txtlocal.com/send/?").openConnection();
+							String data = apiKey + numbers + smsText + sender;
+							conn.setDoOutput(true);
+							conn.setRequestMethod("POST");
+							conn.setRequestProperty("Content-Length", Integer.toString(data.length()));
+							conn.getOutputStream().write(data.getBytes("UTF-8"));
+							conn.getInputStream();
+							conn.disconnect();
+						}
+					}
+					catch(Exception e){
+						new Utilities().writeFile(e);
+					}
+				}
+			});
+
+			t.start();
+		}
+		catch(Exception e){
+			new Utilities().writeFile(e);
+		}
 	}
 
 	private void automaticSearchByReference(final Bible bibleForm){
@@ -461,7 +891,7 @@ public class BibleController {
 					}
 					else {
 
-						Map<String, Map<String, String>> verseValue = bible.getVerseValue();
+						List<VerseDetails> verseValue = bible.getVerseValue();
 
 						if(verseValue != null){
 
@@ -469,12 +899,7 @@ public class BibleController {
 
 							automaticSearchByReference(bibleForm);
 
-							if(verseValue.isEmpty() ||
-									verseValue.containsKey(bible.getNoResult()) ||	
-									verseValue.containsKey(bible.getNoNextVerse()) ||			
-									verseValue.containsKey(bible.getNoBackVerse()) ||	
-									verseValue.containsKey(bible.getNoVerseSelected())
-									){
+							if(verseValue.isEmpty() || isNoVerse()){
 								automaticSearchByText(bibleForm);	
 							}
 						}
@@ -487,6 +912,31 @@ public class BibleController {
 		}
 
 		return null;
+	}
+
+	public boolean isNoVerse() {
+
+		List <String> badResults = new ArrayList<>();
+
+		badResults.add(bible.getNoResult());	
+		badResults.add(bible.getNoNextVerse());			
+		badResults.add(bible.getNoBackVerse());	
+		badResults.add(bible.getNoVerseSelected());
+
+		try {
+			if(bible != null) {
+				List<VerseDetails> verseValue = bible.getVerseValue();
+				if(verseValue != null && !verseValue.isEmpty()) {
+					if(verseValue.stream().filter(vd -> vd != null && vd.getVerse() != null && badResults.contains(vd.getVerse())).findAny().orElse(null) != null) {
+						return true;
+					}
+				}
+			}
+		} catch (Exception e) {
+			new Utilities().writeFile(e);
+		}
+
+		return false;
 	}
 
 	private void automaticSearchByText(final Bible bibleForm){
@@ -639,7 +1089,7 @@ public class BibleController {
 		try{
 			if(searchedWords != null && searchedWords.length > 0){
 
-				HashSet<String> set = new HashSet<>(Arrays.asList(searchedWords));
+				HashSet<String> set = new HashSet<>(Arrays.asList(searchedWords).stream().filter(w -> w != null && !w.trim().isEmpty()).collect(Collectors.toList()));
 
 				String maxWord = null;
 				int maxLen = 0;
@@ -680,7 +1130,7 @@ public class BibleController {
 					String searchText = bibleForm.getSearchText();
 
 					if(searchText != null && !searchText.trim().isEmpty()){
-
+						bible.setPlaceholderSuggestion(searchText);
 						searchText = searchText.trim();
 
 						if(searchText.contains("	")){
@@ -744,7 +1194,7 @@ public class BibleController {
 
 			if(bible != null){
 
-				Map<String, Map<String, String>> verseValue = bible.getVerseValue();
+				List<VerseDetails> verseValue = bible.getVerseValue();
 
 				if(verseValue != null){
 					verseValue.clear();
@@ -753,7 +1203,12 @@ public class BibleController {
 
 					if(formResult != null && formResult.length() == 0){
 						bible.setCurentDisplay(bible.getNoResult());
-						verseValue.put(bible.getNoResult(), null);
+
+						final VerseDetails vd = new VerseDetails();
+
+						vd.setVerse(bible.getNoResult());
+
+						verseValue.add(vd);
 					}
 					else {
 
@@ -765,7 +1220,12 @@ public class BibleController {
 						bible.setUnHighlightedText(unHighlightedText);
 
 						if(!settings.isHighlights()){
-							verseValue.put(nonColorSearchedText, null);
+
+							final VerseDetails vd = new VerseDetails();
+
+							vd.setVerse(nonColorSearchedText);
+
+							verseValue.add(vd);
 						}
 						else if(unHighlightedText != null){
 
@@ -773,7 +1233,12 @@ public class BibleController {
 							String inexactColorSelected = settings.getInexactColorPaletteSelected();
 
 							String highlightedText = unHighlightedText.replaceAll("_@@@@@@_", exactColorSelected).replaceAll("_!!!!!!_", inexactColorSelected);
-							verseValue.put(highlightedText, null);
+
+							final VerseDetails vd = new VerseDetails();
+
+							vd.setVerse(highlightedText);
+
+							verseValue.add(vd);
 						}
 
 						if(Integer.parseInt(settings.getSearchBlockLengthSelection()) == 1 && searchDetails != null && searchDetails.size() == 1){
@@ -1445,13 +1910,16 @@ public class BibleController {
 							bible.setSelectedVerse(selectedVerse);
 							bibleForm.setSelectedVerse(selectedVerse);
 
-							Map<String, Map<String, String>> verseValue = bible.getVerseValue();
+							List<VerseDetails> verseValue = bible.getVerseValue();
 
 							if(verseValue != null){
 								bible.setSelectedVerse(bible.getSelectVerse());
 								bibleForm.setSelectedVerse(bible.getSelectVerse());
 								verseValue.clear();
-								verseValue.put(bible.getNoBackVerse(), null);
+
+								final VerseDetails vd = new VerseDetails();
+								vd.setVerse(bible.getNoBackVerse());
+								verseValue.add(vd);
 								bible.setCurentDisplay(bible.getNoBackVerse());
 							}
 						}
@@ -1471,11 +1939,15 @@ public class BibleController {
 						}
 					}
 					else{
-						Map<String, Map<String, String>> verseValue = bible.getVerseValue();
+						List<VerseDetails> verseValue = bible.getVerseValue();
 
 						if(verseValue != null){
 							verseValue.clear();
-							verseValue.put(bible.getNoVerseSelected(), null);
+
+							final VerseDetails vd = new VerseDetails();
+							vd.setVerse(bible.getNoVerseSelected());
+							verseValue.add(vd);
+
 							bible.setCurentDisplay(bible.getNoVerseSelected());	
 						}
 					}
@@ -1508,11 +1980,15 @@ public class BibleController {
 							bible.setSelectedVerse(bible.getSelectVerse());
 							bibleForm.setSelectedVerse(bible.getSelectVerse());
 
-							Map<String, Map<String, String>> verseValue = bible.getVerseValue();
+							List<VerseDetails> verseValue = bible.getVerseValue();
 
 							if(verseValue != null){
 								verseValue.clear();
-								verseValue.put(bible.getNoNextVerse(), null);
+
+								final VerseDetails vd = new VerseDetails();
+								vd.setVerse(bible.getNoNextVerse());
+
+								verseValue.add(vd);
 								bible.setCurentDisplay(bible.getNoNextVerse());
 							}
 						}
@@ -1523,11 +1999,15 @@ public class BibleController {
 						displaySelectedVerse(bibleForm);
 					}
 					else{
-						Map<String, Map<String, String>> verseValue = bible.getVerseValue();
+						List<VerseDetails> verseValue = bible.getVerseValue();
 
 						if(verseValue != null){
 							verseValue.clear();
-							verseValue.put(bible.getNoVerseSelected(), null);
+
+							final VerseDetails vd = new VerseDetails();
+							vd.setVerse(bible.getNoVerseSelected());
+
+							verseValue.add(vd);
 							bible.setCurentDisplay(bible.getNoVerseSelected());
 						}
 					}
@@ -1642,7 +2122,7 @@ public class BibleController {
 				}
 
 				if(!uniqueVerse){
-					selectBooks(bibleForm, false);
+					selectBooks(bibleForm.getSelectedVersion(), false);
 				}
 			}
 		}
@@ -1957,11 +2437,15 @@ public class BibleController {
 
 					if(versionVerseReference.isEmpty()){
 
-						Map<String, Map<String, String>> verseValue = bible.getVerseValue();
+						List<VerseDetails> verseValue = bible.getVerseValue();
 
 						if(verseValue != null){
 							verseValue.clear();
-							verseValue.put(bible.getNoResult(), null);
+
+							final VerseDetails vd = new VerseDetails();
+							vd.setVerse(bible.getNoResult());
+
+							verseValue.add(vd);
 							bible.setCurentDisplay(bible.getNoResult());
 						}
 					}
@@ -1977,17 +2461,16 @@ public class BibleController {
 		return uniqueVerse;
 	}
 
-	private void selectBooks(Bible bibleForm, boolean clearContent){
+	private void selectBooks(String selectedVersion, boolean clearContent){
 
 		try{
-			if(bible != null && bibleForm != null){
+			if(bible != null){
 				cleanLastSearch();
 				Utilities utilities = new Utilities();
 				LinkedHashSet<String> booksSet = utilities.getList(bible.getSelectBook());
 				LinkedHashSet<String> chaptersSet = utilities.getList(bible.getNoChapter());
 				LinkedHashSet<String> versesSet = utilities.getList(bible.getNoVerse());
 
-				String selectedVersion = bibleForm.getSelectedVersion();
 				if(selectedVersion != null && !selectedVersion.trim().isEmpty() && 
 						(!selectedVersion.trim().equals(bible.getSelectVersion())) &&
 						(!selectedVersion.trim().equals(bible.getNoVersion())) 	
@@ -2019,7 +2502,7 @@ public class BibleController {
 
 				if(clearContent){
 
-					Map<String, Map<String, String>> verseValue = bible.getVerseValue();
+					List<VerseDetails> verseValue = bible.getVerseValue();
 
 					if(verseValue != null){
 						verseValue.clear();
@@ -2036,7 +2519,7 @@ public class BibleController {
 	private void selectVersionBooks(Bible bibleForm){
 		bible.setSearchTextAvailable(false);
 		if(!displaySelectedVerse(bibleForm)){
-			selectBooks(bibleForm, true);
+			selectBooks(bibleForm.getSelectedVersion(), true);
 		}
 	}
 
@@ -2060,11 +2543,13 @@ public class BibleController {
 							(!selectedBook.trim().equals(bible.getNoBook()))
 							){
 
-						TreeSet<Integer> allChapters = utilities.getBookChapters(selectedVersion, getRealBook(selectedVersion, selectedBook));
-
-						for(Integer ch : allChapters){
-							if(ch > 0){
-								chaptersSet.add(ch + "");
+						final TreeSet<Integer> allChapters = utilities.getBookChapters(selectedVersion, getRealBook(selectedVersion, selectedBook));
+						
+						if(allChapters != null && !allChapters.isEmpty()){
+							for(Integer ch : allChapters){
+								if(ch > 0){
+									chaptersSet.add(ch + "");
+								}
 							}
 						}
 					}
@@ -2082,7 +2567,7 @@ public class BibleController {
 
 					bible.setVerses(versesSet);
 
-					Map<String, Map<String, String>> verseValue = bible.getVerseValue();
+					List<VerseDetails> verseValue = bible.getVerseValue();
 
 					if(verseValue != null){
 						verseValue.clear();
@@ -2145,7 +2630,7 @@ public class BibleController {
 
 				utilities.setAllVerses(bible, currentChapter);
 
-				Map<String, Map<String, String>> verseValue = bible.getVerseValue();
+				List<VerseDetails> verseValue = bible.getVerseValue();
 
 				if(verseValue != null){
 
@@ -2153,20 +2638,23 @@ public class BibleController {
 
 					if(settings.isDisplayEntireChapter() && bible.getSelectedChapter().matches("\\d+") && currentChapter != null){
 
-						if(!bible.isDisplayReference()){
+						String[] chapterArray = currentChapter.split("<br>");
 
-							String[] chapterArray = currentChapter.split("<br>");
-
-							if(chapterArray != null && chapterArray.length > 0){
-								for (String chapterLine : chapterArray){
-									if(chapterLine != null && chapterLine.contains("&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp")){
-										currentChapter = currentChapter.replaceAll(chapterLine + "<br>", "");
+						if(chapterArray != null && chapterArray.length > 0){
+							for (String chapterLine : chapterArray){
+								if(chapterLine != null && !chapterLine.trim().isEmpty()) {
+									if(!bible.isDisplayReference() && chapterLine.contains("&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp")){
+										continue;
 									}
+
+									final VerseDetails vd = new VerseDetails();
+									vd.setVerse(chapterLine.trim());
+
+									verseValue.add(vd);
 								}
 							}
 						}
 
-						verseValue.put(currentChapter, null);
 						bible.setCurentDisplay(currentChapter);
 					}
 				}
@@ -2189,6 +2677,191 @@ public class BibleController {
 					String verseReferences   = new Utilities().getReferenceText(reference, bible, version, book, chapter, verseN.trim());
 					versesMap.put(verseReferences, verseValue.trim());
 				}
+			}
+		}
+		catch(Exception e){
+			new Utilities().writeFile(e);
+		}
+	}
+
+	private void selectProfile(String selectedProfile) {
+
+		try {
+			if(bible != null && selectedProfile != null && !selectedProfile.trim().isEmpty() && selectedProfile.trim().matches("\\d+") && bible.getProfiles() != null && bible.getProfiles().contains(selectedProfile.trim())) {
+				bible.setSelectedProfile(selectedProfile.trim());
+				setDefault();
+				switch(selectedProfile.trim()) {
+				case "2":{
+					setProfile_2();
+					break;
+				}
+				case "3":{
+					setProfile_3();
+					break;
+				}
+				}
+			}
+		}
+		catch(Exception e){
+			new Utilities().writeFile(e);
+		}
+	}
+
+	private void setDefault() {
+
+		if(bible != null) {
+			bible.setWordWrap(false);
+			bible.setOpenPopup(false);
+			bible.setSelectAll(false);
+			bible.setUsingVoice(false);
+			bible.setFormFontSelected("4");
+			bible.setDisplayReference(false);
+			bible.setSearchTextAvailable(false);
+		}
+
+		if(settings != null) {
+			settings.setEmailFrom(1);
+			settings.setWordWrap(false);
+			settings.setOpenPopup(false);
+			settings.setSelelctAll(true);
+			settings.setUsingVoice(false);
+			settings.setHighlights(false);
+			settings.setFormFontSelected("3");
+			settings.setSearchLevelSelected(1);
+			settings.setDisplayReference(false);
+			settings.setAutomatSendMessage(false);
+			settings.setDisplayEntireChapter(true);
+			settings.setSaveMessageSettings(false);
+			settings.setSelectedLanguage("english");
+			settings.setSearchBlockLengthSelection("1");
+			settings.setExactColorPaletteSelected("#00ca33");
+			settings.setInexactColorPaletteSelected("#d20000");
+		}
+
+		if(church != null) {
+			church.setOpenPopup(false);
+			church.setUsingVoice(false);
+			church.setFormFontSelected("3");
+		}
+
+		if(popup != null) {
+			popup.setOpenPopup(false);
+			popup.setUsingVoice(false);
+			popup.setDisplayPicture(false);
+			popup.setPopupBoldSelected(true);
+			popup.setPopupFontSelected("20");
+			popup.setImageOpacitySelected(10);
+			popup.setDisplayUserMessage(false);
+			popup.setPopupMarginTopSelected(5);
+			popup.setLineHeightPopupSelected(1);
+			popup.setPopupMarginLeftSelected(70);
+			popup.setWordSpacingPopupSelected(0);
+			popup.setDisplayScriptureText(false);
+			popup.setPopupMarginBottomSelected(5);
+			popup.setPopupMarginRightSelected(70);
+			popup.setLetterSpacingPopupSelected(0);
+			popup.setFontStylePopupSelected("normal");
+			popup.setScriptureTextOpacitySelected(10);
+			popup.setDefaultPopupImageSelected(false);
+			popup.setPopupTextAlignSelected("justify");
+			popup.setPopupTextColorPaletteSelected("#000000");
+			popup.setFontFamilyPopupSelected("Times New Roman");
+			popup.setPopupBackgroundColorPaletteSelected("#ffffff");
+		}
+
+		if(reference != null) {
+			reference.setOpenPopup(false);
+			reference.setUsingVoice(false);
+			reference.setReferenceParamSelected_1(0);
+			reference.setReferenceParamSelected_2(0);
+			reference.setReferenceParamSelected_3(0);
+			reference.setReferenceParamSelected_4(0);
+			reference.setReferenceParamSelected_5(0);
+			reference.setReferenceParamSelected_6(0);
+			reference.setReferenceDotsSpaceSelected(0);
+			reference.setReferenceBookSpaceSelected(1);
+			reference.setReferenceSizePopupSelected(110);
+			reference.setReferenceEnterUpPopupSelected(0);
+			reference.setReferenceVersionSpaceSelected(1);
+			reference.setReferencePopupBoldSelected(true);
+			reference.setReferenceChapterSpaceSelected(0);
+			reference.setReferenceDisplayBookSelected(true);
+			reference.setReferenceEnterDownPopupSelected(1);
+			reference.setReferenceDisplayVerseSelected(true);
+			reference.setReferenceAlignPopupSelected("center");
+			reference.setReferenceDisplayChapterSelected(true);
+			reference.setReferenceLetterSpacingPopupSelected(0);
+			reference.setReferenceDisplayVersionSelected(false);
+			reference.setReferenceFontStylePopupSelected("normal");
+			reference.setReferenceFontDecorationPopupSelected("none");
+			reference.setReferenceColorPopupPaletteSelected_1("#000000");
+			reference.setReferenceColorPopupPaletteSelected_2("#ffffff");
+			reference.setReferenceFontFamilyPopupSelected("Times New Roman");
+		}
+
+		if(code != null) {
+			code.setOpenPopup(false);
+			code.setUsingVoice(false);
+			code.setSelectedFileId(0);
+			code.setSelectedFileValue(0);
+		}
+
+		if(screensaver != null) {
+			screensaver.setOpenPopup(false);
+			screensaver.setUsingVoice(false);
+			screensaver.setPlaySong(false);
+			screensaver.setScreensaverColorPaletteSelected_1("#000000");
+			screensaver.setScreensaverColorPaletteSelected_2("#000000");
+			screensaver.setScreensaverColorPaletteSelected_3("#000000");
+			screensaver.setScreensaverColorPaletteSelected_4("#000000");
+			screensaver.setScreensaverColorPaletteSelected_5("#ffffff");
+			screensaver.setScreensaverParamSelected_1(5);
+			screensaver.setScreensaverParamSelected_2(0);
+			screensaver.setScreensaverParamSelected_3(0);
+			screensaver.setScreensaverParamSelected_4(-5);
+			screensaver.setScreensaverParamSelected_5(0);
+			screensaver.setScreensaverParamSelected_6(0);
+			screensaver.setScreensaverParamSelected_7(0);
+			screensaver.setScreensaverParamSelected_8(4);
+			screensaver.setScreensaverParamSelected_9(0);
+			screensaver.setScreensaverParamSelected_10(0);
+			screensaver.setScreensaverParamSelected_11(-4);
+			screensaver.setScreensaverParamSelected_12(0);
+			screensaver.setScreensaverRadioSelected(1);
+			screensaver.setScreensaverCategoriesSelected(1);
+			screensaver.setScreensaverTimeSelected(10);
+			screensaver.setScreensaverTypeSelected(1);
+		}
+	}
+
+	private void setProfile_2() {
+		try {
+			if(bible != null) {
+				cleanLastSearch();
+				bible.setSearchTextAvailable(false);
+				selectBooks("Cornilescu", true);
+			}
+		}
+		catch(Exception e){
+			new Utilities().writeFile(e);
+		}
+	}
+
+	private void setProfile_3() {
+		try {
+			if(screensaver != null && popup != null && bible != null) {
+				cleanLastSearch();
+				popup.setPopupFontSelected("70");
+				popup.setPopupMarginTopSelected(45);
+				bible.setSearchTextAvailable(false);
+				popup.setFontFamilyPopupSelected("Arial");
+				screensaver.setScreensaverTimeSelected(30);
+				screensaver.setScreensaverParamSelected_1(5);
+				screensaver.setScreensaverParamSelected_8(4);
+				screensaver.setScreensaverParamSelected_4(-5);
+				screensaver.setScreensaverParamSelected_11(-4);
+				screensaver.setScreensaverColorPaletteSelected_5("#ffff00");
+				selectBooks("Cornilescu", true);
 			}
 		}
 		catch(Exception e){
@@ -2308,6 +2981,9 @@ public class BibleController {
 					}
 				}
 			}
+			if(settings.isAutomatSendMessage()) {
+				sendMessage();
+			}
 		}
 		catch(Exception e){
 			new Utilities().writeFile(e);
@@ -2322,7 +2998,7 @@ public class BibleController {
 
 			if(bible != null && versionVerseReference != null && !versionVerseReference.isEmpty()){
 
-				Map<String, Map<String, String>> verseValue = bible.getVerseValue();
+				List<VerseDetails> verseValue = bible.getVerseValue();
 
 				if(verseValue != null){
 
@@ -2357,14 +3033,25 @@ public class BibleController {
 							bible.setCurentDisplay(verseText);
 
 							if(referencesMap != null && !referencesMap.isEmpty()){
-								verseValue.put(verseText, referencesMap);
+
+								final VerseDetails vd = new VerseDetails();
+								vd.setVerse(verseText);
+								vd.setReferences(referencesMap);
+
+								verseValue.add(vd);
 							}
 							else{
-								verseValue.put(verseText, null);
+								final VerseDetails vd = new VerseDetails();
+								vd.setVerse(verseText);
+								verseValue.add(vd);
 							}
 						}
 						else{
-							verseValue.put(bible.getNoResult(), null);
+
+							final VerseDetails vd = new VerseDetails();
+							vd.setVerse(bible.getNoResult());
+
+							verseValue.add(vd);
 							bible.setCurentDisplay(bible.getNoResult());
 						}
 					}
@@ -2492,7 +3179,6 @@ public class BibleController {
 						}
 					}
 				}
-
 			}
 		}
 		catch(Exception e){
@@ -2500,5 +3186,191 @@ public class BibleController {
 		}
 
 		return referencesMap;
+	}
+
+	private String getEmailsAddress(boolean selectedEmail) {
+
+		String result = "<br>";
+
+		try {
+
+			final List<Message> messages = settings.getMessages();
+
+			for(Message message : messages) {
+				if(message != null && message.isEmail()) {
+					String address = message.getAddress();
+					if(address != null && !address.trim().isEmpty()) {
+						if(selectedEmail && message.isSelected() && message.isSendEmail()) {
+							result += address + "<br>";
+						} else if(!selectedEmail) {
+							result += address + "<br>";
+						}
+					}
+				}
+			}
+		}
+		catch(Exception e) {
+			new Utilities().writeFile(e);
+		}
+
+		return result;
+	}
+
+	private String getPhoneAddress(boolean selectedPhone) {
+
+		String result = "<br>";
+
+		try {
+
+			final List<Message> messages = settings.getMessages();
+
+			for(Message message : messages) {
+				if(message != null && message.isPhone()) {
+					String number = message.getAddress();
+					if(number != null && !number.trim().isEmpty()) {
+						if(selectedPhone && message.isSelected() && message.isSendPhone()) {
+							result += number + "<br>";
+						} else if(!selectedPhone) {
+							result += number + "<br>";
+						}
+					}
+				}
+			}
+		}
+		catch(Exception e) {
+			new Utilities().writeFile(e);
+		}
+
+		return result;
+	}
+
+	private void sendEmail(final String text) {
+
+		try {
+
+			String serverEmail = "www.bibles.ro@gmail.com";
+			String serverPassword = Constant.bibleServerPassword;
+
+			if(settings.getEmailFrom() == 2) {
+
+				serverEmail = settings.getUserEmail();
+				serverPassword = settings.getUserPassword();
+
+				if(serverEmail == null || serverEmail.trim().isEmpty() || serverPassword == null || serverPassword.trim().isEmpty()) {
+					serverEmail = "www.bibles.ro@gmail.com";
+					serverPassword = Constant.bibleServerPassword;
+				}
+			}
+
+			final String from = serverEmail;
+			final String password = serverPassword;
+
+			final List<Message> emails = settings.getMessages().parallelStream().filter(e -> e != null && e.isEmail() && e.isSelected() && e.isSendEmail() && e.getAddress() != null && !e.getAddress().trim().isEmpty()).collect(Collectors.toList());
+
+			Thread t = new Thread(new Runnable() {
+
+				@Override
+				public void run() {
+
+					for(Message message: emails) {
+
+						String title = message.getTitle();
+						String content = message.getMessage();
+
+						if(title == null || title.trim().isEmpty()) {
+							title = settings.getDefaultMessageTitle();
+						}
+
+						if(content == null || content.trim().isEmpty()) {
+							content = settings.getDefaultMessageContent();
+						}
+
+						new Utilities().sendEmail(from, password, title, content + "<br><br>" + text, message.getAddress().trim());
+					}
+				}
+			});
+
+			t.start();
+		}
+		catch(Exception e) {
+			new Utilities().writeFile(e);
+		}
+	}
+
+	private void loadOldSettings(Bible bibleForm) {
+
+		try {
+
+			if(bible != null && settings != null && bibleForm != null && bible.isFirstAccess()) {
+				bible.setFirstAccess(false);
+				selectProfile(bibleForm.getSelectedOldProfile());
+				settings.setUserEmail(bibleForm.getUserEmail());
+				settings.setEmailFrom(bibleForm.getEmailFrom());
+				settings.setAutomatSendMessage(Boolean.parseBoolean(bibleForm.getAutomatSendMessage()));
+
+				List<Message> messages = settings.getMessages();
+
+				if(messages != null) {
+
+					String messagesEncapsulation = bibleForm.getMessagesEncapsulation();
+
+					if(messagesEncapsulation != null && !messagesEncapsulation.trim().isEmpty()) {
+
+						String [] oldMessages = messagesEncapsulation.split(Constant.messageSplitSign);
+						if(oldMessages != null && oldMessages.length > 0) {
+							messages.clear();
+							for(String message : oldMessages) {
+								if(message != null && !message.trim().isEmpty()) {
+									String[] messageDetails = message.split(Constant.splitSign);
+									if(messageDetails.length == 7) {
+
+										final String address = messageDetails[3];
+										final String name = messageDetails[4];
+										final String title = messageDetails[5];
+										final String messageContent = messageDetails[6];
+
+										if(address != null && !address.equalsIgnoreCase(Constant.nullSign)) {
+
+											final Message oldMessage = new Message();
+
+											oldMessage.setAddress(address);
+											oldMessage.setSelected(Boolean.parseBoolean(messageDetails[0]));
+											oldMessage.setSendEmail(Boolean.parseBoolean(messageDetails[1]));
+											oldMessage.setSendPhone(Boolean.parseBoolean(messageDetails[2]));
+
+											if(name != null && !name.equalsIgnoreCase(Constant.nullSign)) {
+												oldMessage.setName(name);
+											}
+
+											if(title != null && !title.equalsIgnoreCase(Constant.nullSign)) {
+												oldMessage.setTitle(title);
+											}
+
+											if(messageContent != null && !messageContent.equalsIgnoreCase(Constant.nullSign)) {
+												oldMessage.setMessage(messageContent);
+											}
+
+											if(new Utilities().isValidEmailAddress(address)) {
+												oldMessage.setEmail(true);
+											}
+
+											if(new Utilities().isValidPhoneNumber(address)) {
+												oldMessage.setAddress(new Utilities().cleanNumber(address.trim()));
+												oldMessage.setPhone(true);
+											}
+
+											messages.add(oldMessage);
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+		catch(Exception e) {
+			new Utilities().writeFile(e);
+		}
 	}
 }

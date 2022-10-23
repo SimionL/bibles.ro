@@ -17,16 +17,44 @@
 }
 .position{
 	position: relative;
-	left: 1%;
+	left: 0.5%;
 }
 .newWindow{
 	position: relative;
 	display: inline-block;
-	height: 35%;
-	width: 50%;
+	height: 37px;
+	width: 38px;
 	cursor: pointer
 }
+
+.email{
+	position: relative;
+	display: inline-block;
+	height: 35px;
+	width: 49px;
+	cursor: pointer
+}
+
 .tableClass{
 	overflow:hidden; 
 	white-space: nowrap;
+}
+
+.mainTable{
+	width: 1%;
+	cursor: pointer;
+}
+
+.searchField{
+	height: 6%;
+	width: 100%;
+	margin-top: 6px;
+	cursor: pointer;
+}
+.searchButton{
+	position: relative;
+	display: inline-block;
+	height: 39px;
+	width: 39px;
+	cursor: pointer
 }

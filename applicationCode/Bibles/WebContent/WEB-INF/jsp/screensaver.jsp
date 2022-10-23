@@ -219,7 +219,7 @@ function ajaxRequest(eventId) {
 				 	calculateTimeLeft(remain);
 			 	}
 
-			 	var myWindow = window.open("", '${screensaver.popupId}', "width=800,height=400,menubar=no,titlebar=no,toolbar=no,location=no,status=no,fullscreen=yes,channelmode=yes,scrollbars=no");
+			 	var myWindow = window.open("", '${screensaver.popupId}', "width=800,height=400,menubar=no,titlebar=no,toolbar=no,location=no,status=no,fullscreen=1,scrollbars=0,resizable=yes");
 
 			 	var doc = myWindow.document;
 				 	doc.open();

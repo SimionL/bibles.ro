@@ -15,24 +15,14 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.text.Normalizer;
 import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
-import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
-import javax.mail.Message;
-import javax.mail.PasswordAuthentication;
-import javax.mail.Session;
-import javax.mail.Transport;
-import javax.mail.internet.InternetAddress;
-import javax.mail.internet.MimeMessage;
-import javax.naming.directory.InitialDirContext;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -63,7 +53,7 @@ import dbBeans.ChurchTable;
 import dbBeans.Event;
 import dbBeans.Participant;
 import utilities.AppBean;
-import utilities.Constants;
+import utilities.Constant;
 import utilities.Utilities;
 
 @Controller
@@ -107,8 +97,8 @@ public class ChurchController {
 	@Autowired
 	private Feedback feedback;
 
-	private final String eventsPath = Constants.eventsPath.value;
-	private final String platformType = Constants.platformType.value;
+	private final String eventsPath = Constant.eventsPath;
+	private final String platformType = Constant.platformType;
 
 	@RequestMapping(value = "/church", method = RequestMethod.POST, headers = "content-type=multipart/form-data")
 	public ModelAndView church(ModelMap model, Church churchForm, HttpServletRequest request, HttpServletResponse response){
@@ -908,7 +898,7 @@ public class ChurchController {
 						error += "<br>" + church.getExistEmailError();
 						validAccount = false;
 					}
-					if(!isValidEmail(churchEmail.trim())){
+					if(!new Utilities().isValidEmailAddress(churchEmail.trim())){
 						error += "<br>" + church.getInvalidEmailFormat();
 						validAccount = false;
 					}
@@ -1346,6 +1336,12 @@ public class ChurchController {
 							}
 						}
 
+						zos.finish();
+						zos.flush();
+						fos.flush();
+						zos.close();
+						fos.close();
+
 						response.setContentType(MediaType.ALL_VALUE);
 
 						String resultName = cleanString(event.getEventName()) + ".zip";
@@ -1448,16 +1444,11 @@ public class ChurchController {
 				for(String email : emailsTo){
 					if(email != null && !email.trim().isEmpty()){
 
-						if(isValidEmail(email)){
+						if(new Utilities().isValidEmailAddress(email)){
 
-							boolean emailSended = sendEmail(user.getChurchEmail(), user.getChurchEmailPassword(), email.trim(), title, getEmailContent(content));
+							new Utilities().sendEmail(user.getChurchEmail(), user.getChurchEmailPassword(), title, getEmailContent(content), email.trim());
 
-							if(emailSended){
-								allEmailsSended += "<br>" + email;
-							}
-							else{
-								allEmailsNotSended += "<br>" + email;
-							}
+							allEmailsSended += "<br>" + email;
 						}
 						else{
 							allEmailsNotSended += "<br>" + email;
@@ -1489,7 +1480,7 @@ public class ChurchController {
 					+ " <div class=\"overlay\"> <br>"
 					+ content
 					+ "<br><br><br>"
-					+ Constants.appLink.value 
+					+ Constant.appLink 
 					+ "church=" + church.getSelectedChurch()
 					+ "&event=" + church.getSelectedEvent()
 					+ "&language=" + settings.getSelectedLanguage()
@@ -1510,64 +1501,5 @@ public class ChurchController {
 			new Utilities().writeFile(e);
 		}
 		return result;
-	}
-
-	private boolean isValidEmail(final String email) {
-
-		try {
-			if (email != null && !email.trim().isEmpty() && Pattern.compile("^[_A-Za-z0-9-\\+]+(\\.[_A-Za-z0-9-]+)*@[A-Za-z0-9-]+(\\.[A-Za-z0-9]+)*(\\.[A-Za-z]{2,})$").matcher(email.trim()).matches()){
-
-				new InternetAddress(email.trim()).validate();
-
-				Hashtable<String, String> env = new Hashtable<>();
-				env.put("java.naming.factory.initial", "com.sun.jndi.dns.DnsContextFactory");
-
-				new InitialDirContext(env).getAttributes(email.substring(email.indexOf("@") + 1), new String[] { "MX" });
-				return true;
-			}
-		} catch (Exception e) {
-			new Utilities().writeFile(e);
-		}
-		return false;
-	}
-
-	private boolean sendEmail(String fromEmail, String password, String emailTo, String title, String content){
-
-		try{
-			if(fromEmail != null && !fromEmail.trim().isEmpty() && 
-					emailTo != null && !emailTo.trim().isEmpty() &&
-					content != null && !content.trim().isEmpty()){
-
-				if(title == null){
-					title = "";
-				}
-
-				Properties props = new Properties();
-
-				props.put("mail.smtp.auth", "true");
-				props.put("mail.smtp.starttls.enable", "true");
-				props.put("mail.smtp.host", "smtp.gmail.com");
-				props.put("mail.smtp.port", "587");
-
-				Session session = Session.getInstance(props, new javax.mail.Authenticator() {
-					protected PasswordAuthentication getPasswordAuthentication() {
-						return new PasswordAuthentication(fromEmail.trim(), password);
-					}
-				});
-
-				Message message = new MimeMessage(session);
-				message.setFrom(new InternetAddress(fromEmail.trim()));
-				message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(emailTo.trim()));
-				message.setSubject(title.trim());
-				message.setContent(content.trim(), "text/html; charset=utf-8");
-
-				Transport.send(message);
-
-				return true;
-			}
-		} catch (Exception e) {
-			new Utilities().writeFile(e);
-		}
-		return false;
 	}
 }

@@ -6,6 +6,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Base64;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.TreeSet;
@@ -38,8 +39,9 @@ import dao.DAO;
 import dbBeans.ScreensaverTable;
 import utilities.AppBean;
 import utilities.Beans;
-import utilities.Constants;
+import utilities.Constant;
 import utilities.Utilities;
+import utilities.VerseDetails;
 
 @Controller
 @Transactional
@@ -82,9 +84,9 @@ public class ScreensaverController {
 	@Autowired
 	private Feedback feedback;
 
-	private final String dbPath = Constants.dbPath.value;
-	private final String platformType = Constants.platformType.value;
-	private final String picturesPath = Constants.picturesPath.value;
+	private final String dbPath = Constant.dbPath;
+	private final String platformType = Constant.platformType;
+	private final String picturesPath = Constant.picturesPath;
 
 	@RequestMapping(value = "/ajaxCall.htm", method = RequestMethod.POST, headers = "Accept=*/*", produces = "text/html;charset=UTF-8")
 	public @ResponseBody String ajaxRequest(@RequestParam("param") String param, HttpServletRequest request, HttpServletResponse response){
@@ -709,7 +711,9 @@ public class ScreensaverController {
 										format.equals("PNG")  ||
 										format.equals("png")  ||
 										format.equals("GIF")  ||
-										format.equals("gif")
+										format.equals("gif")  ||
+										format.equals("WEBP") ||
+										format.equals("webp")
 										)){
 
 									File picture = new File(fileSelected);
@@ -778,7 +782,7 @@ public class ScreensaverController {
 					app.setCurrentScreensaver(currentScreensaver);
 				}
 				else{
-					app.setCurrentScreensaver(0);
+					app.setCurrentScreensaver(1);
 				}
 			}
 
@@ -1233,11 +1237,15 @@ public class ScreensaverController {
 										screensaver.setOpenPopup(true);
 										utilities.addMultipleScripturePopupText(church, settings, code, popup, reference, bible, screensaver, app, Beans.screensaver);
 
-										Map<String, Map<String, String>> verseValue = bible.getVerseValue();
+										List<VerseDetails> verseValue = bible.getVerseValue();
 
 										if(verseValue != null){
 											verseValue.clear();
-											verseValue.put(app.getVerseValue(), null);
+											
+											final VerseDetails vd = new VerseDetails();
+											vd.setVerse(app.getVerseValue());
+											
+											verseValue.add(vd);
 										}
 										return true;
 									}
@@ -1342,27 +1350,24 @@ public class ScreensaverController {
 
 				setScreensaverImage(false);
 
-				String result = " <html> <head> <style> "                                                                      +
-						" .imgDiv { "		                                                                                  +
-						" width: \"100%\"; "                                                                                  +
-						" height:\"100%\"; "                                                                                  +
-						" } "                                                                                                 +
-						" .scriptureTextDiv { "                                                                               +
-						" position: absolute; "                                                                               +
-						" color: " + getScreensaverColor(5) + "     ; "                                                                                     +
-						" top: 0; "                                                                                           +
-						" left: 0; "                                                                                          +
-						" width: \"100%\"; "                                                                                  +
-						" font-size: " + popup.getPopupFontSelected() + "px; "                                             +
-						utilities.addMargins(popup)                                                                        +
-						" text-align: " + popup.getPopupTextAlignSelected()+ "; "                                          +
-						" font-weight: bold; "                                                                                +
+				String result = " <html> <head> <style> "                           +
+						" body { margin-top: -10px ; margin-left: -10px ; margin-right: -10px ; margin-bottom: -10px ; overflow:hidden !important;} " +
+						" .scriptureTextDiv { "                                     +
+						" position: absolute; "                                     +
+						" color: " + getScreensaverColor(5) + "     ; "             +
+						" top: 0; "                                                 +
+						" left: 0; "                                                +
+						" width: \"100%\"; "                                        +
+						" font-size: " + popup.getPopupFontSelected() + "px; "      +
+						utilities.addMargins(popup)                                 +
+						" text-align: " + popup.getPopupTextAlignSelected()+ "; "   +
+						" font-weight: bold; "                                      +
 						" text-shadow: " + screensaver.getScreensaverParamSelected_1() + "px " + screensaver.getScreensaverParamSelected_2() + "px " + screensaver.getScreensaverParamSelected_3() + "px " + getScreensaverColor(1) + " , " + 
 						screensaver.getScreensaverParamSelected_4() + "px " + screensaver.getScreensaverParamSelected_5() + "px " + screensaver.getScreensaverParamSelected_6() + "px " + getScreensaverColor(2) + " , " + 
 						screensaver.getScreensaverParamSelected_7() + "px " + screensaver.getScreensaverParamSelected_8() + "px " + screensaver.getScreensaverParamSelected_9() + "px " + getScreensaverColor(3) + " , " + 
 						screensaver.getScreensaverParamSelected_10() +"px " + screensaver.getScreensaverParamSelected_11() +"px " + screensaver.getScreensaverParamSelected_12() +"px " + getScreensaverColor(4) + " ; " +
-						" } "                                                                                                 +
-						" </style> </head> <body bgcolor=\"" + popup.getPopupBackgroundColorPaletteSelected() + "\">"      +
+						" } "                                                                                             +
+						" </style> </head> <body>"     +
 						utilities.getPictureString(app)                                                                   +
 						" <div class=\"scriptureTextDiv\"> " + verseReferences + "<br>" + app.getVerseValue() + " </div> "+
 						" </body></html>";

@@ -846,17 +846,29 @@ public class TranslateController{
 											if(newLanguage.getMessageType() == null){
 												newLanguage.setMessageType(getEncodedString(http.callUrlAndParseResult("en",languageCode, language.getMessageType())));
 											}
-											
+
 											if(newLanguage.getMessagePassword() == null){
 												newLanguage.setMessagePassword(getEncodedString(http.callUrlAndParseResult("en",languageCode, language.getMessagePassword())));
 											}
-											
+
 											if(newLanguage.getOthersCaps() == null){
 												newLanguage.setOthersCaps(getEncodedString(http.callUrlAndParseResult("en",languageCode, language.getOthersCaps())));
 											}
 
 											if(newLanguage.getiWantToJoinCaps() == null){
 												newLanguage.setiWantToJoinCaps(getEncodedString(http.callUrlAndParseResult("en",languageCode, language.getiWantToJoinCaps())));
+											}
+
+											if(newLanguage.getSearchByReference() == null){
+												newLanguage.setSearchByReference(getEncodedString(http.callUrlAndParseResult("en",languageCode, language.getSearchByReference())));
+											}
+
+											if(newLanguage.getSearchByText() == null){
+												newLanguage.setSearchByText(getEncodedString(http.callUrlAndParseResult("en",languageCode, language.getSearchByText())));
+											}
+
+											if(newLanguage.getPlaceholderSuggestion() == null){
+												newLanguage.setPlaceholderSuggestion(getEncodedString(http.callUrlAndParseResult("en",languageCode, language.getPlaceholderSuggestion())));
 											}
 
 											if(newLanguage != null){

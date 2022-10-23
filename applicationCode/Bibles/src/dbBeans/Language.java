@@ -21,7 +21,7 @@ import org.springframework.stereotype.Component;
 @Scope(proxyMode = ScopedProxyMode.TARGET_CLASS, value = "session")
 public class Language implements Serializable {
 
-	private static final long serialVersionUID = -4389469588921394716L;
+	private static final long serialVersionUID = -869154988091618991L;
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -556,6 +556,15 @@ public class Language implements Serializable {
 
 	@Column(name = "i_want_to_join_caps")
 	private String iWantToJoinCaps;
+
+	@Column(name = "search_by_reference")
+	private String searchByReference;
+
+	@Column(name = "search_by_text")
+	private String searchByText;
+
+	@Column(name = "placeholder_suggestion")
+	private String placeholderSuggestion;
 
 	public String getSelectVersion() {
 		return selectVersion;
@@ -1971,6 +1980,30 @@ public class Language implements Serializable {
 
 	public void setiWantToJoinCaps(String iWantToJoinCaps) {
 		this.iWantToJoinCaps = iWantToJoinCaps;
+	}
+
+	public String getSearchByReference() {
+		return searchByReference;
+	}
+
+	public void setSearchByReference(String searchByReference) {
+		this.searchByReference = searchByReference;
+	}
+
+	public String getSearchByText() {
+		return searchByText;
+	}
+
+	public void setSearchByText(String searchByText) {
+		this.searchByText = searchByText;
+	}
+
+	public String getPlaceholderSuggestion() {
+		return placeholderSuggestion;
+	}
+
+	public void setPlaceholderSuggestion(String placeholderSuggestion) {
+		this.placeholderSuggestion = placeholderSuggestion;
 	}
 
 	public boolean equals(Object o) {

@@ -13,9 +13,17 @@
 
 <script type="text/javascript" charset="utf-8">
 
-function startListening() {
+function onLoadSteps() {
 
 	try {
+		
+		if('${settings.saveMessageSettings}' === 'true'){
+			
+			localStorage.setItem('messagesEncapsulation', JSON.stringify('${settings.messagesEncapsulation}'));
+			localStorage.setItem('userEmail',             JSON.stringify('${settings.userEmail}'));
+			localStorage.setItem('emailFrom',             JSON.stringify('${settings.emailFrom}'));
+			localStorage.setItem('automatSendMessage',    JSON.stringify('${settings.automatSendMessage}'));
+		}
 		
 		if('${settings.usingVoice}' == 'true'){
 
@@ -95,16 +103,6 @@ function startListening() {
 </script>
 
 <style type="text/css">
-      .userMessageClass{
-    	font-size: 25px;
-		border: 0 none white;
-		width: 100%;
-		max-width: 100%;
-		height: 100%;
-		max-height: 100%;
-		word-wrap: break-word;
-  		text-align: center;
-      }
 
 div.tab {
     overflow: hidden;
@@ -131,11 +129,12 @@ div.tab button:hover {
 div.tab button.active {
     background-color: #39D951;
 }
+
 </style>
 
 </head>
 </head>
-<body onload="startListening();">
+<body onload="onLoadSteps();">
 
 <div class="tab">
   <button id="bibleTabId">${settings.bible}</button>
@@ -157,12 +156,22 @@ div.tab button.active {
 </div>
 </div>
 
+<div style = "position: absolute; left: 50%;">
+
 	<div align="center">
 		<c:if test="${not empty settings.error}">
 			<font color="red">${settings.error}</font>
 			<br><br>
 		</c:if>
 	</div>
+	
+	<div align="center">
+					<c:if test="${not empty settings.ok}">
+						<b><font color="green">${settings.ok}</font></b>
+					</c:if>
+	</div>
+	
+</div>
 
 	<form:form action="blessed" 
 			   modelAttribute="settings"
@@ -182,6 +191,18 @@ div.tab button.active {
 					id="identifiedWordsId" 
 				    hidden="true"
 		/>
+		
+		<form:input path="selectedMessageId" 
+		    		type="text"
+					class="selectedMessageId" 
+				    hidden="true"
+		/>
+
+		<form:input path="messagesEncapsulation" 
+		    		type="text"
+					class="messagesEncapsulation" 
+				    hidden="true"
+		/>
 
 		<form:input path="eventId" type="text" class="eventId" hidden="true" />
 
@@ -194,6 +215,19 @@ div.tab button.active {
 								   cssStyle = "cursor: pointer"
 								   onchange="$('.eventId').val(17);this.form.submit();"
 					/>
+				</td>
+				
+				<td align="left" colspan='1'><c:out value="${settings.formFontLabel}" /></td>
+			
+				<td align="left" colspan='1'>
+
+				 	<form:select path="formFontSelected" 
+	            			  	 items="${settings.formFontList}"
+							  	 value="${settings.formFontSelected}" 
+							  	 selected="true"
+							 	 onchange="$('.eventId').val(15);this.form.submit();" 
+							 	 cssStyle = "cursor: pointer"
+				   	/>
 				</td>
 				
 			</tr>
@@ -233,46 +267,6 @@ div.tab button.active {
 					/>
 				</td>
 
-			</tr>
-			<tr>
-				<td colspan='1'><c:out value="${settings.displayReferencesLabel}" /></td>
-				<td align="left" colspan='1'>
-					<form:checkbox path="displayReference"
-									cssStyle = "cursor: pointer"
-									onchange="$('.eventId').val(14);this.form.submit();" 
-					/>
-				</td>
-
-			</tr>
-
-			<tr>
-				<td colspan='1'><c:out value="${settings.displayEntireChapterLabel}" /></td>
-				<td align="left" colspan='1'>
-				    <form:checkbox path="displayEntireChapter"
-								   cssStyle = "cursor: pointer"
-								   onchange="$('.eventId').val(16);this.form.submit();" 
-					/>
-				</td>
-				
-			</tr>
-			
-			<tr>
-			
-				<td align="left" colspan='1'><c:out value="${settings.formFontLabel}" /></td>
-			
-				<td align="left" colspan='1'>
-
-				 	<form:select path="formFontSelected" 
-	            			  	 items="${settings.formFontList}"
-							  	 value="${settings.formFontSelected}" 
-							  	 selected="true"
-							 	 onchange="$('.eventId').val(15);this.form.submit();" 
-							 	 cssStyle = "cursor: pointer"
-				   	/>
-				</td>
-			</tr>
-
-			<tr>
 				<td align="left" colspan='1'><c:out value="${settings.searchBlockLength}"/></td>
 				
 				<td align="left" colspan='1'>
@@ -286,8 +280,15 @@ div.tab button.active {
 				    />
 				</td>
 			</tr>
-			
 			<tr>
+				<td colspan='1'><c:out value="${settings.displayReferencesLabel}" /></td>
+				<td align="left" colspan='1'>
+					<form:checkbox path="displayReference"
+									cssStyle = "cursor: pointer"
+									onchange="$('.eventId').val(14);this.form.submit();" 
+					/>
+				</td>
+
 				<td align="left" colspan='1'><c:out value="${settings.searchLevel}"/></td>
 				
 				<td align="left" colspan='1'>
@@ -298,9 +299,18 @@ div.tab button.active {
 							  	 cssStyle = "cursor: pointer"
 				    />
 				</td>
+
 			</tr>
 
 			<tr>
+				<td colspan='1'><c:out value="${settings.displayEntireChapterLabel}" /></td>
+				<td align="left" colspan='1'>
+				    <form:checkbox path="displayEntireChapter"
+								   cssStyle = "cursor: pointer"
+								   onchange="$('.eventId').val(16);this.form.submit();" 
+					/>
+				</td>
+				
 				<td align="left" colspan='1'><c:out value="${settings.selectLanguage}" /></td>
 
 				<td align="left" colspan='1'>
@@ -313,8 +323,354 @@ div.tab button.active {
 
 				</td>
 			</tr>
-
+			
+			<tr>
+			
+				<td colspan='1'><c:out value="${settings.automatMessage}" /></td>
+				
+				
+				<td align="left" colspan='1'>
+					 <form:checkbox path="automatSendMessage"
+					                class="automatSendMessage"
+									cssStyle = "cursor: pointer"
+									onchange="$('.eventId').val(23);this.form.submit();" 
+					/>
+				</td>
+			
+			</tr>
+			
 		</table>
+		
+		<br>
+		
+		
+		<table>
+		
+		<tr>
+		
+			<td align="right" colspan='3' >
+				<span style="font-weight: bold; "> ${settings.message}: </span>
+			</td >
+		
+		</tr>
+		
+		<tr><td colspan='3' ><br></td><tr>
+		
+		<tr>
+			
+				<td align="left" colspan='3' >
+			    <div align="center">
+			    	<form:radiobuttons path="emailFrom"
+			    	                   class="emailFrom"
+									   cssStyle = "cursor: pointer" 
+									   items="${settings.emailFromMap}"
+									   delimiter = "&nbsp;&nbsp;"
+									   onchange="$('.eventId').val(24);$('#settingsForm').submit();" 
+					/>
+					</div>
+			    </td>
+			
+				<c:if test="${settings.emailFrom == 2}">
+					<td align="left" colspan='2'>
+			    		<form:input path="userEmail" 
+			    		            class="userEmail" 
+			    					cssStyle = "cursor: pointer"
+									type="text"
+									size="35%"
+									placeholder='${settings.userServerEmailPlaceholder}'
+									onkeydown="$('.eventId').val(25);if(event.keyCode==13){$('#settingsForm').submit();};"
+						/>
+					</td>
+					
+					<td align="left" colspan='1'>
+						<img
+							src="<c:url 
+  							value="/resources/images/add.jpg"/>"
+							style = "cursor: pointer"
+							onclick="$('.eventId').val(25);$('#settingsForm').submit();"
+						/>
+					</td>
+			    </c:if>
+			</tr>
+			    
+			    <c:if test="${settings.emailFrom == 2}">
+			    	<tr>
+			    		<td align="left" colspan='3'>
+							<img src="<c:url value="/resources/images/instructions.gif"/>" />
+						</td>
+			         	
+						<td align="left" colspan='2'>
+			     
+							<form:password path="userPassword"
+								   	   	   cssStyle = "cursor: pointer"
+								   	   	   size="36%"
+								   	   	   placeholder='${settings.userServerPasswordPlaceholder}'
+								   	   	   onkeydown="$('.eventId').val(26);if(event.keyCode==13){$('#settingsForm').submit();};"
+							/>
+			    		</td>
+			    		
+			    		<td align="left" colspan='1'>
+					<img
+						src="<c:url 
+  						value="/resources/images/add.jpg"/>"
+						style = "cursor: pointer"
+						onclick="$('.eventId').val(26);$('#settingsForm').submit();"
+					/>
+				</td>
+			    	
+			    	</tr>
+				</c:if>
+
+				<c:choose>
+						<c:when test="${'undefined' != settings.messages && not empty settings.messages}">
+
+				        	<tr>
+				        	
+				        		<td colspan='4' ></td>
+				        		<td colspan='2' > <span>&nbsp;&nbsp;</span></td>
+				        		
+				        		<td colspan='2' align="center"> 
+
+									<form:checkbox path="selelctAll"
+												   style = "cursor: pointer ; position: relative; top: 7px;"
+										   	   	   value=""
+								   	       	   	   onchange="$('.eventId').val(33);$('#settingsForm').submit();"
+									/>
+
+								</td>
+								
+				        		<td colspan='1' > <span>${settings.email}&nbsp;&nbsp;</span></td>
+				        		<td colspan='1' > <span>${settings.phone}&nbsp;&nbsp;</span></td>
+				        	<tr>
+
+						</c:when>
+						<c:otherwise>
+									
+							<tr><td colspan='3' ><br></td><tr>
+
+						</c:otherwise>
+				</c:choose>
+
+			<tr>
+				<td align="left" colspan='1'><c:out value="${settings.addMessage}" /></td>
+
+				<td align="left" colspan='1'>
+
+					<form:input path="newAddress"
+						        type="text"
+								cssStyle = "cursor: pointer"
+								size="55%"
+								placeholder="${settings.addPlaceholder}"
+								onkeydown="$('.eventId').val(20);if(event.keyCode==13){$('#settingsForm').submit();};"
+					/>
+				</td>
+				<td align="left" colspan='1'>
+					<img
+						src="<c:url 
+  						value="/resources/images/add.jpg"/>"
+						style = "cursor: pointer"
+						onclick="$('.eventId').val(20);$('#settingsForm').submit();"
+					/>
+				</td>
+
+			</tr>
+			
+			<tr>
+				<td align="left" colspan='1'><c:out value="${settings.name}" /></td>
+
+				<td align="left" colspan='1'>
+
+					<form:input path="nameValue"
+						        type="text"
+								cssStyle = "cursor: pointer"
+								size="55%"
+								placeholder="${settings.namePlaceholder}"
+								onkeydown="$('.eventId').val(30);if(event.keyCode==13){$('#settingsForm').submit();};"
+					/>
+				</td>
+				
+				<td align="left" colspan='1'>
+					<img
+						src="<c:url 
+  						value="/resources/images/add.jpg"/>"
+						style = "cursor: pointer"
+						onclick="$('.eventId').val(30);$('#settingsForm').submit();"
+					/>
+				</td>
+			</tr>
+			
+			<tr>
+				
+				<td align="left" colspan='1'>
+					<c:out value="${settings.messageTitleLabel}" />
+				</td>
+
+				<td align="left" colspan='1'>
+		
+				        	<form:input path="messageTitleValue" 
+										type="text"
+										size="55%"
+										placeholder="${settings.titlePlaceholder}"
+										onkeydown="$('.eventId').val(27);if(event.keyCode==13){$('#settingsForm').submit();};"
+					 		/>
+
+				</td>
+				
+				<td align="left" colspan='1'>
+						<img
+							src="<c:url 
+  							value="/resources/images/add.jpg"/>"
+							style = "cursor: pointer"
+							onclick="$('.eventId').val(27);$('#settingsForm').submit();"
+						/>
+				</td>
+			</tr>
+			
+			<tr>
+			
+				<td align="left" colspan='1' >
+					<c:out value="${settings.messageContentLabel}" />
+				</td>
+
+				<td align="left" colspan='1'>	
+				     <form:textarea path="messageContentValue" placeholder="${settings.contentPlaceholder}"                                       cssStyle = "background: transparent; font-size: 16px; width: 100%; max-width: 100%; height: 200px; max-height: 200px; word-wrap: break-word; text-align: left;"/>
+				</td>
+				
+				<td align="left" colspan='1'>
+					<img
+						src="<c:url 
+  						value="/resources/images/add.jpg"/>"
+						style = "cursor: pointer"
+						onclick="$('.eventId').val(28);$('#settingsForm').submit();"
+					/>
+				</td>
+			
+			</tr>
+	
+				<c:forEach var="message" items="${settings.messages}" varStatus="messagesStatus">
+					<tr>
+						<td align="left" colspan='1'></td>
+			    		<td align="left" colspan='1'></td>
+			    		<td align="left" colspan='1'></td>
+			    		<td align="left" colspan='1'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
+			    		<td align="left" colspan='1'>
+							
+		    		 	    <c:choose>
+								<c:when test="${settings.selectedMessageId eq message.address}">
+									
+				                		
+									<form:label path="selectedMessage"
+    	 	            		 	    		cssStyle = "cursor: pointer ; position: relative; top: -298px; color: green ; font-weight: bold"
+    	 	            		 	    		onclick="$('.selectedMessageId').val('${message.address}');$('.eventId').val(29);$('#settingsForm').submit();"  
+		    		 	    		>
+		    		     	     		${message.name}
+		    		 	    		</form:label>
+								
+									
+								</c:when>
+								<c:otherwise>
+									
+									<form:label path="selectedMessage"
+    	 	            		 	    		cssStyle = "cursor: pointer ; position: relative; top: -298px;"
+    	 	            		 	    		onclick="$('.selectedMessageId').val('${message.address}');$('.eventId').val(29);$('#settingsForm').submit();"  
+		    		 	    		>
+		    		     	     		${message.name}
+		    		 	    		</form:label>
+
+								</c:otherwise>
+							</c:choose>
+		    		     	
+						</td>
+						<td align="left" colspan='1'>
+							
+		    		 	    <c:choose>
+								<c:when test="${settings.selectedMessageId eq message.address}">
+									
+				                		
+									<form:label path="selectedMessage"
+    	 	            		 	    		cssStyle = "cursor: pointer ; position: relative; top: -298px; color: green ; font-weight: bold"
+    	 	            		 	    		onclick="$('.selectedMessageId').val('${message.address}');$('.eventId').val(29);$('#settingsForm').submit();"  
+		    		 	    		>
+		    		     	     		${message.address}
+		    		 	    		</form:label>
+								
+									
+								</c:when>
+								<c:otherwise>
+									
+									<form:label path="selectedMessage"
+    	 	            		 	    		cssStyle = "cursor: pointer ; position: relative; top: -298px;"
+    	 	            		 	    		onclick="$('.selectedMessageId').val('${message.address}');$('.eventId').val(29);$('#settingsForm').submit();"  
+		    		 	    		>
+		    		     	     		${message.address}
+		    		 	    		</form:label>
+
+								</c:otherwise>
+							</c:choose>
+		    		     	
+						</td>
+						<td align="center" colspan='2'>
+							
+							<form:checkbox path="messages[${messagesStatus.index}].selected"
+										   value=""
+								   	   	   cssStyle = "cursor: pointer ; position: relative; top: -298px;"
+								   	       onchange="$('.selectedMessageId').val('${message.address}');$('.eventId').val(21);$('#settingsForm').submit();"
+							/>
+						</td>
+	
+						<td align="center" colspan='1'>
+							<c:if test="${message.email eq true}">
+								<form:checkbox path="messages[${messagesStatus.index}].sendEmail"
+										   	   value=""
+								   	   	   	   cssStyle = "cursor: pointer ; position: relative; top: -298px;"
+								   	           onchange="$('.selectedMessageId').val('${message.address}');$('.eventId').val(31);$('#settingsForm').submit();"
+								/>
+							</c:if>
+						</td>
+						
+						<td align="center" colspan='1'>
+							<c:if test="${message.phone eq true}">
+								<form:checkbox path="messages[${messagesStatus.index}].sendPhone"
+										   	   value=""
+								   	   	       cssStyle = "cursor: pointer ; position: relative; top: -298px;"
+								   	       	   onchange="$('.selectedMessageId').val('${message.address}');$('.eventId').val(32);$('#settingsForm').submit();"
+								/>
+							</c:if>
+						</td>
+						
+					
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						<td align="center" colspan='1'>	
+							<img src="<c:url  value="/resources/images/delete.gif" />"
+							     style = "cursor: pointer ; position: relative; top: -299px;"
+							     onclick="$('.selectedMessageId').val('${message.address}');$('.eventId').val(22);$('#settingsForm').submit();" 
+							/>
+							 
+						</td>
+					</tr>  	
+				</c:forEach>
+		
+		</table>
+
 	</form:form>
 	
 		<script type="text/javascript" charset="utf-8">

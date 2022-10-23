@@ -17,11 +17,20 @@ import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.Random;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
+import java.util.regex.Pattern;
 
+import javax.mail.Address;
+import javax.mail.Message;
+import javax.mail.PasswordAuthentication;
+import javax.mail.Session;
+import javax.mail.Transport;
+import javax.mail.internet.InternetAddress;
+import javax.mail.internet.MimeMessage;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -48,10 +57,10 @@ import dbBeans.ScreensaverTable;
 
 public class Utilities {
 
-	private final String bibleLog = Constants.bibleLog.value;
-	private final String platformType = Constants.platformType.value;	
-	private final String dbPath = Constants.dbPath.value;
-	private final String picturesPath = Constants.picturesPath.value;
+	private final String bibleLog = Constant.bibleLog;
+	private final String platformType = Constant.platformType;	
+	private final String dbPath = Constant.dbPath;
+	private final String picturesPath = Constant.picturesPath;
 
 	public void setModel(ModelMap model, Bible bible, Church church, Settings settings, Popup popup, Reference reference, Screensaver screensaver, ApplicationCode code, Voice voice, ThankYou thankYou, Feedback feedback){
 
@@ -219,36 +228,29 @@ public class Utilities {
 
 				if(language != null){
 
-					Map<String, Map<String, String>> verseValue = bible.getVerseValue();
+					List<VerseDetails> verseValue = bible.getVerseValue();
 
 					if(verseValue != null && !verseValue.isEmpty()){
 
-						LinkedHashMap<String, Map<String, String>> newValue =  new LinkedHashMap<>();
+						for(VerseDetails verseD : verseValue){
 
-						newValue.clear();
-
-						for(String verseKey : verseValue.keySet()){
-
-							String verseSelected = verseKey;
+							String verseSelected = verseD.getVerse();
 
 							if(verseSelected != null && !verseSelected.trim().isEmpty()){
 
 								verseSelected = verseSelected.trim();
 
 								if(verseSelected.equalsIgnoreCase(bible.getNoBackVerse())){
-									newValue.put(language.getNoBackVerse(), verseValue.get(verseKey));
+									verseD.setVerse(language.getNoBackVerse());
 								}
 								else if(verseSelected.equalsIgnoreCase(bible.getNoNextVerse())){
-									newValue.put(language.getNoNextVerse(), verseValue.get(verseKey));
+									verseD.setVerse(language.getNoNextVerse());
 								}
 								else if(verseSelected.equalsIgnoreCase(bible.getNoVerseSelected())){
-									newValue.put(language.getNoVerseSelected(), verseValue.get(verseKey));
+									verseD.setVerse(language.getNoVerseSelected());
 								}
 								else if(verseSelected.equalsIgnoreCase(bible.getNoResult())){
-									newValue.put(language.getNoResult(), verseValue.get(verseKey));
-								}
-								else {
-									newValue.put(verseKey, verseValue.get(verseKey));
+									verseD.setVerse(language.getNoResult());
 								}
 							}
 						}
@@ -376,6 +378,10 @@ public class Utilities {
 					bible.setVoice(language.getVoice());
 					bible.setFeedback(language.getFeedback());
 					bible.setThankYou(language.getThankYou());
+					bible.setSearchByReference(language.getSearchByReference());
+					bible.setSearchByText(language.getSearchByText());
+					bible.setPlaceholderSuggestion(language.getPlaceholderSuggestion());
+					bible.setOkEmail(language.getOkEmail());
 
 					settings.setDisplayReferencesLabel(language.getDisplayReferences());
 					settings.setWordWrapLabel(language.getWordWrap());
@@ -398,6 +404,7 @@ public class Utilities {
 					settings.setVoice(language.getVoice());
 					settings.setFeedback(language.getFeedback());
 					settings.setThankYou(language.getThankYou());
+					settings.setMessage(language.getMessage());
 
 					popup.setPopupBackgroundColorLabel(language.getPopupBackgroundColor());
 					popup.setPopupTextColorLabel(language.getPopupTextColor());
@@ -610,6 +617,16 @@ public class Utilities {
 					feedback.setUserPasswordLabel(language.getMessagePassword());
 					feedback.setWrongPasswordMessage(language.getWrongPassword());
 
+					final LinkedHashMap<Integer, String> emailFromMap = settings.getEmailFromMap();
+
+					if(emailFromMap != null){
+
+						emailFromMap.clear();
+
+						emailFromMap.put(1, "use our server");
+						emailFromMap.put(2, "use your server");
+					}
+
 					final LinkedHashMap<Integer, String> typeRadioMap = feedback.getTypeRadioMap();
 
 					if(typeRadioMap != null){
@@ -651,6 +668,13 @@ public class Utilities {
 						screensaverCategoriesMap.put(6, language.getClouds());
 						screensaverCategoriesMap.put(7, language.getPigeons());
 						screensaverCategoriesMap.put(8, language.getOthers());
+						screensaverCategoriesMap.put(9, "the knowledge of God");
+						screensaverCategoriesMap.put(10, "how is God");
+						screensaverCategoriesMap.put(11, "without fear");
+						screensaverCategoriesMap.put(12, "listening in prayer");
+						screensaverCategoriesMap.put(13, "how to find God wish");
+						screensaverCategoriesMap.put(14, "God plan for man");
+						screensaverCategoriesMap.put(15, "God answers");
 					}
 
 					final LinkedHashMap<Integer, String> searchAreaOptions = settings.getSearchAreaOptions();
@@ -892,7 +916,7 @@ public class Utilities {
 
 					folderMap.clear();
 
-					iterateFolder(folderMap, "&nbsp;&nbsp;", Constants.codePath.value);
+					iterateFolder(folderMap, "&nbsp;&nbsp;", Constant.codePath);
 
 					if(folderMap != null && !folderMap.isEmpty()){
 
@@ -1038,7 +1062,7 @@ public class Utilities {
 
 					melodiesList.clear();
 
-					File songsFolder = getFolder(Constants.melodiesPath.value);
+					File songsFolder = getFolder(Constant.melodiesPath);
 
 					if(songsFolder != null){
 						File[] songsArray = songsFolder.listFiles();
@@ -2274,25 +2298,56 @@ public class Utilities {
 		try{
 			emptySelection(appBean);
 
-			LinkedHashMap<String, Map<String, String>> verseValue = bible.getVerseValue();
+			List<VerseDetails> verseValue = bible.getVerseValue();
 
 			String text = "";
 			if(verseValue != null && !verseValue.isEmpty() && popup.isDisplayScriptureText()){
 
-				LinkedHashMap<String, Map<String, String>> newVerseUnboldValue = new LinkedHashMap<>();
+				final LinkedList<VerseDetails> newVerseUnboldValue = new LinkedList<>();
 
-				for(String verse : verseValue.keySet()){
-					if(verse != null && !verse.trim().isEmpty()){
-						Map<String, String> references = verseValue.get(verse);
-						String unBoldVerse = (verse.replace("<b>", "")).replace("</b>", "");
+				for(VerseDetails vd : verseValue){
+					if(vd != null) {
+						String verse = vd.getVerse();
+						if(verse != null && !verse.trim().isEmpty()){
 
-						newVerseUnboldValue.put(unBoldVerse, references);
+							text += verse.trim() + "<br><br>";
+		
+							verse = verse.replaceAll("&nbsp;", "")
+									.replaceAll("</br>", "<br>")
+									.replaceAll("<br/>", "<br>")
+									.replaceAll(Constant.splitSign, "")
+									.replaceAll(Constant.messageSplitSign, "")
+									.replaceAll(Constant.nullSign, "")
+									.replaceAll("\\p{C}", "")
+									.replaceAll("[\\p{Cntrl}&&[^\r\n\t]]", "")
+									.replaceAll("[\\r\\n\\t]", "")
+									.replaceAll("\r\n", "")
+									.replaceAll("\r", "")
+									.trim();
 
-						text += verse.trim() + "<br><br>";
+							String[] chapterArray = verse.split("<br>");
+
+							if(chapterArray != null && chapterArray.length > 0){
+								for (String line : chapterArray){
+									if(line != null && !line.trim().isEmpty()) {
+
+										final VerseDetails finalVerse = new VerseDetails();
+
+										finalVerse.setVerse(line.trim());
+										finalVerse.setSelected(vd.isSelected());
+										finalVerse.setReferences(vd.getReferences());
+
+										newVerseUnboldValue.add(finalVerse);
+									}
+								}
+							}
+						}
 					}
 				}
 
-				bible.setVerseValue(newVerseUnboldValue);
+				verseValue.clear();
+				verseValue.addAll(newVerseUnboldValue);
+
 
 				if(text.contains("<b>")){
 					text = text.replace("<b>", "");	
@@ -2455,7 +2510,7 @@ public class Utilities {
 			Map<String, String> selectedImagesMap = appBean.getSelectedImagesMap();
 
 			if(selectedImagesMap != null && !selectedImagesMap.isEmpty()){
-				result += " <div class=\"imgDiv\">";
+				result += " <div> ";
 				for(String fileName : selectedImagesMap.keySet()){
 					if(fileName != null && !fileName.trim().isEmpty() && fileName.contains(".")){
 						String picture = selectedImagesMap.get(fileName);
@@ -3215,6 +3270,133 @@ public class Utilities {
 			writeFile(e);
 			return false;
 		}
+		return false;
+	}
+	public void sendEmail(String fromEmail, String password, String title, String content, String ... emailTo){
+
+		try{
+
+			if(fromEmail != null && 
+					!fromEmail.trim().isEmpty() && 
+					isValidEmailAddress(fromEmail) &&
+					emailTo != null && 
+					emailTo.length > 0 &&
+					content != null && 
+					!content.trim().isEmpty()){
+
+				if(title == null){
+					title = "";
+				}
+
+				Properties props = new Properties();
+
+				props.put("mail.smtp.auth", true);
+				props.put("mail.smtp.starttls.enable", "true");
+				props.put("mail.smtp.host", "smtp.gmail.com");
+				props.put("mail.smtp.port", "587");
+				props.put("mail.smtp.ssl.trust", "smtp.gmail.com");
+				props.put("mail.transport.protocol", "smtp");
+
+				Address[] allAdresses = new Address[emailTo.length];
+				int index = 0;
+				for(String e : emailTo){
+					if(e != null && !e.trim().isEmpty()) {
+						allAdresses[index++] = new InternetAddress(e.trim());
+					}
+				}
+
+				if(allAdresses != null && allAdresses.length > 0) {
+					Session session = Session.getInstance(props, new javax.mail.Authenticator() {
+						protected PasswordAuthentication getPasswordAuthentication() {
+							return new PasswordAuthentication(fromEmail.trim(), password);
+						}
+					});
+
+					if(session != null) {
+						Message message = new MimeMessage(session);
+						message.setFrom(new InternetAddress(fromEmail.trim()));
+						message.setRecipients(Message.RecipientType.TO, allAdresses);
+						message.setSubject(title.trim());
+						message.setContent(content.trim(), "text/html; charset=utf-8");
+
+						if(message != null) {
+							Transport.send(message);
+						}
+					}
+				}
+			}
+		}
+		catch (Exception e) {
+			new Utilities().writeFile(e);
+		}
+	}
+
+	public String cleanNumber(String number){
+
+		try {
+			if (number != null && !number.trim().isEmpty() && number.length() > 2){
+
+				number = number.replace(" ", "")
+						.replace("	", "")
+						.replace("_", "")
+						.replace("-", "")
+						.replace("=", "");
+				return number.trim();
+			}
+		}
+		catch (Exception e) {
+			new Utilities().writeFile(e);
+		}
+
+		return null;
+	}
+
+	public boolean isValidPhoneNumber(String number){
+
+		try {
+
+			if (number != null && !number.trim().isEmpty() && number.length() > 2){
+
+				number = cleanNumber(number);
+
+				if (number != null && !number.trim().isEmpty() && number.length() > 2){
+
+					number = number.replace("+", "");
+
+					if (number != null && 
+							!number.trim().isEmpty() && 
+							number.length() > 2 &&
+							number.trim().matches("\\d+")
+							){
+						return true;
+					}	
+				}		
+			}
+		}
+		catch (Exception e){
+			new Utilities().writeFile(e);
+			return false;
+		}
+
+		return false;
+	}
+
+	public boolean isValidEmailAddress(final String emailAddress){
+
+		try {
+
+			if (emailAddress != null && !emailAddress.trim().isEmpty() && Pattern.compile("^[_A-Za-z0-9-\\+]+(\\.[_A-Za-z0-9-]+)*@[A-Za-z0-9-]+(\\.[A-Za-z0-9]+)*(\\.[A-Za-z]{2,})$").matcher(emailAddress).matches()){
+
+				new InternetAddress(emailAddress).validate();
+
+				return true;
+			}
+		}
+		catch (Exception e){
+			new Utilities().writeFile(e);
+			return false;
+		}
+
 		return false;
 	}
 }

@@ -14,10 +14,11 @@ import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
 import org.springframework.orm.hibernate5.HibernateTransactionManager;
 import org.springframework.orm.hibernate5.LocalSessionFactoryBuilder;
+import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.web.servlet.config.annotation.DefaultServletHandlerConfigurer;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
-import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.springframework.web.servlet.view.InternalResourceViewResolver;
 import org.springframework.web.servlet.view.JstlView;
 
@@ -31,9 +32,10 @@ import utilities.Constants;
 
 @EnableWebMvc
 @Configuration
-@ComponentScan
+@EnableScheduling
 @EnableTransactionManagement
-public class ApplicationContextConfig extends WebMvcConfigurerAdapter{
+@ComponentScan(basePackages = {"dao","beans","config","controller"})
+public class ApplicationContextConfig implements WebMvcConfigurer{
 
 	@Override
 	public void configureDefaultServletHandling(DefaultServletHandlerConfigurer configurer) { 

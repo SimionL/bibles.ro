@@ -2,54 +2,100 @@ package beans;
 
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.TreeSet;
+
+import utilities.Message;
 
 public final class Settings{
 
-	private transient String bible;
-	private transient String settings;
-	private transient String popup;
-	private transient String reference;
-	private transient String church;
-	private transient String screensaver;
-	private transient String code;
-	private transient String voice;
-	private transient String feedback;
-	private transient String thankYou;
+	private String bible;
+	private String settings;
+	private String popup;
+	private String reference;
+	private String church;
+	private String screensaver;
+	private String code;
+	private String voice;
+	private String feedback;
+	private String thankYou;
 
-	private transient String eventId;
+	private String eventId;
 	private final TreeSet<String> languages = new TreeSet<>();
+	private final List<Message> messages = new LinkedList<>();
 	private final LinkedHashSet<String> formFontList = new LinkedHashSet<>();
 	private final LinkedHashSet<String> searchBlockLengthSelectionList = new LinkedHashSet<>();
-	private transient final LinkedHashMap<Integer, String> searchAreaOptions =  new LinkedHashMap<>();
+	private final LinkedHashMap<Integer, String> searchAreaOptions = new LinkedHashMap<>();
+	private final LinkedHashMap<Integer, String> emailFromMap = new LinkedHashMap<>();
 
-	private transient String displayReferencesLabel;
-	private transient String wordWrapLabel;
-	private transient String displayEntireChapterLabel;
-	private transient String highlightsTextLabel;
-	private transient String formFontLabel;
-	private transient String selectedLanguage;
-	private transient String selectLanguage;
-	private transient String formFontSelected = "3";
-	private transient String searchBlockLength;
-	private transient String searchBlockLengthSelection = "1";
-	private transient String inexactColorsLabel;
-	private transient String exactColorsLabel;
-	private transient String exactColorPaletteSelected = "#00ca33";
-	private transient String inexactColorPaletteSelected = "#d20000";
-	private transient String searchLevel;
-	private transient String error;
-	private transient String identifiedWords = "";
-	private transient String languageCode;
+	private String displayReferencesLabel;
+	private String wordWrapLabel;
+	private String displayEntireChapterLabel;
+	private String highlightsTextLabel;
+	private String formFontLabel;
+	private String selectedLanguage;
+	private String selectLanguage;
+	private String formFontSelected = "3";
+	private String searchBlockLength;
+	private String searchBlockLengthSelection = "1";
+	private String inexactColorsLabel;
+	private String exactColorsLabel;
+	private String exactColorPaletteSelected = "#00ca33";
+	private String inexactColorPaletteSelected = "#d20000";
+	private String searchLevel;
+	private String error;
+	private String ok;
+	private String identifiedWords = "";
+	private String languageCode;
 
-	private transient boolean openPopup;
-	private transient boolean usingVoice;
-	private transient boolean wordWrap;
-	private transient boolean highlights;
-	private transient boolean displayReference;
-	private transient boolean displayEntireChapter;
+	private String automatMessage = "Automat send message";
+	private String addMessage = "Add";
+	private String addPlaceholder = "email or phone are mandatory";
+	private String namePlaceholder = "name or alias are optional";
+	private String titlePlaceholder = "message title is optional";
+	private String contentPlaceholder = "message content is optional";
+	private String passwordSaved = "Password saved!";
+	private String emailSaved = "Email saved!";
+	private String added = "Message was successfully added!";
+	private String userServerEmailPlaceholder = "user gmail server address";
+	private String userServerPasswordPlaceholder = "user server password";
+	private String invalidFormat = "Invalid format!";
+	private String messageTitleAdded = "Message title added!";
+	private String messageContentAdded = "Message content added!";
+	private String defaultMessageTitle = "message from www.bibles.ro";
+	private String defaultMessageContent = "A www.bibles.ro user is sending you this verse:";
+	private String messageTitleLabel = "Title";
+	private String messageContentLabel = "Content";
+	private String phone = "Phone";
+	private String email = "Email";
+	private String name = "Name";
+	private String nameChanged = "Name changed!";
 
-	private transient int searchLevelSelected = 1;
+
+	private String message;
+	private String newAddress;
+	private String selectedMessageId;
+	private String messageTitleValue;
+	private String messageContentValue;
+	private String selectedMessage;
+	private String userEmail;
+	private String userPassword;
+	private String messagesEncapsulation;
+	private String nameValue;
+
+	private boolean openPopup;
+	private boolean usingVoice;
+	private boolean wordWrap;
+	private boolean highlights;
+	private boolean displayReference;
+	private boolean displayEntireChapter = true;
+	private boolean automatSendMessage;
+	private boolean saveMessageSettings;
+	private boolean selelctAll = true;
+
+	private int searchLevelSelected = 1;
+	private int emailFrom = 1;
 
 	public boolean isDisplayReference() {
 		return displayReference;
@@ -355,4 +401,307 @@ public final class Settings{
 		this.thankYou = thankYou;
 	}
 
+	public List<Message> getMessages() {
+		return messages;
+	}
+
+	public String getSelectedMessageId() {
+		return selectedMessageId;
+	}
+
+	public void setSelectedMessageId(String selectedMessageId) {
+		this.selectedMessageId = selectedMessageId;
+	}
+
+	public String getAutomatMessage() {
+		return automatMessage;
+	}
+
+	public void setAutomatMessage(String automatMessage) {
+		this.automatMessage = automatMessage;
+	}
+
+	public boolean isAutomatSendMessage() {
+		return automatSendMessage;
+	}
+
+	public void setAutomatSendMessage(boolean automatSendMessage) {
+		this.automatSendMessage = automatSendMessage;
+	}
+
+	public String getMessageTitleLabel() {
+		return messageTitleLabel;
+	}
+
+	public void setMessageTitleLabel(String messageTitleLabel) {
+		this.messageTitleLabel = messageTitleLabel;
+	}
+
+	public String getMessageContentLabel() {
+		return messageContentLabel;
+	}
+
+	public void setMessageContentLabel(String messageContentLabel) {
+		this.messageContentLabel = messageContentLabel;
+	}
+
+	public String getAddMessage() {
+		return addMessage;
+	}
+
+	public void setAddMessage(String addMessage) {
+		this.addMessage = addMessage;
+	}
+
+	public String getSelectedMessage() {
+		return selectedMessage;
+	}
+
+	public void setSelectedMessage(String selectedMessage) {
+		this.selectedMessage = selectedMessage;
+	}
+
+	public String getInvalidFormat() {
+		return invalidFormat;
+	}
+
+	public void setInvalidFormat(String invalidFormat) {
+		this.invalidFormat = invalidFormat;
+	}
+
+	public int getEmailFrom() {
+		return emailFrom;
+	}
+
+	public void setEmailFrom(int emailFrom) {
+		this.emailFrom = emailFrom;
+	}
+
+	public LinkedHashMap<Integer, String> getEmailFromMap() {
+		return emailFromMap;
+	}
+
+	public String getUserEmail() {
+		return userEmail;
+	}
+
+	public void setUserEmail(String userEmail) {
+		this.userEmail = userEmail;
+	}
+
+	public String getUserPassword() {
+		return userPassword;
+	}
+
+	public void setUserPassword(String userPassword) {
+		this.userPassword = userPassword;
+	}
+
+	public String getUserServerEmailPlaceholder() {
+		return userServerEmailPlaceholder;
+	}
+
+	public void setUserServerEmailPlaceholder(String userServerEmailPlaceholder) {
+		this.userServerEmailPlaceholder = userServerEmailPlaceholder;
+	}
+
+	public String getUserServerPasswordPlaceholder() {
+		return userServerPasswordPlaceholder;
+	}
+
+	public void setUserServerPasswordPlaceholder(String userServerPasswordPlaceholder) {
+		this.userServerPasswordPlaceholder = userServerPasswordPlaceholder;
+	}
+
+	public String getOk() {
+		return ok;
+	}
+
+	public void setOk(String ok) {
+		this.ok = ok;
+	}
+
+	public String getPasswordSaved() {
+		return passwordSaved;
+	}
+
+	public void setPasswordSaved(String passwordSaved) {
+		this.passwordSaved = passwordSaved;
+	}
+
+	public String getEmailSaved() {
+		return emailSaved;
+	}
+
+	public void setEmailSaved(String emailSaved) {
+		this.emailSaved = emailSaved;
+	}
+
+	public String getMessageTitleAdded() {
+		return messageTitleAdded;
+	}
+
+	public void setMessageTitleAdded(String messageTitleAdded) {
+		this.messageTitleAdded = messageTitleAdded;
+	}
+
+	public String getMessageContentAdded() {
+		return messageContentAdded;
+	}
+
+	public void setMessageContentAdded(String messageContentAdded) {
+		this.messageContentAdded = messageContentAdded;
+	}
+
+	public String getDefaultMessageTitle() {
+		return defaultMessageTitle;
+	}
+
+	public void setDefaultMessageTitle(String defaultMessageTitle) {
+		this.defaultMessageTitle = defaultMessageTitle;
+	}
+
+	public String getDefaultMessageContent() {
+		return defaultMessageContent;
+	}
+
+	public void setDefaultMessageContent(String defaultMessageContent) {
+		this.defaultMessageContent = defaultMessageContent;
+	}
+
+	public String getMessagesEncapsulation() {
+		return messagesEncapsulation;
+	}
+
+	public void setMessagesEncapsulation(String messagesEncapsulation) {
+		this.messagesEncapsulation = messagesEncapsulation;
+	}
+
+	public boolean isSaveMessageSettings() {
+		return saveMessageSettings;
+	}
+
+	public void setSaveMessageSettings(boolean saveMessageSettings) {
+		this.saveMessageSettings = saveMessageSettings;
+	}
+
+	public String getMessage() {
+		return message;
+	}
+
+	public void setMessage(String message) {
+		this.message = message;
+	}
+
+	public String getPhone() {
+		return phone;
+	}
+
+	public void setPhone(String phone) {
+		this.phone = phone;
+	}
+
+	public String getEmail() {
+		return email;
+	}
+
+	public void setEmail(String email) {
+		this.email = email;
+	}
+
+	public String getMessageTitleValue() {
+		return messageTitleValue;
+	}
+
+	public void setMessageTitleValue(String messageTitleValue) {
+		this.messageTitleValue = messageTitleValue;
+	}
+
+	public String getMessageContentValue() {
+		return messageContentValue;
+	}
+
+	public void setMessageContentValue(String messageContentValue) {
+		this.messageContentValue = messageContentValue;
+	}
+
+	public String getAdded() {
+		return added;
+	}
+
+	public void setAdded(String added) {
+		this.added = added;
+	}
+
+	public String getAddPlaceholder() {
+		return addPlaceholder;
+	}
+
+	public void setAddPlaceholder(String addPlaceholder) {
+		this.addPlaceholder = addPlaceholder;
+	}
+
+	public String getName() {
+		return name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
+	}
+
+	public String getNameValue() {
+		return nameValue;
+	}
+
+	public void setNameValue(String nameValue) {
+		this.nameValue = nameValue;
+	}
+
+	public String getNameChanged() {
+		return nameChanged;
+	}
+
+	public void setNameChanged(String nameChanged) {
+		this.nameChanged = nameChanged;
+	}
+
+	public String getNamePlaceholder() {
+		return namePlaceholder;
+	}
+
+	public void setNamePlaceholder(String namePlaceholder) {
+		this.namePlaceholder = namePlaceholder;
+	}
+
+	public String getTitlePlaceholder() {
+		return titlePlaceholder;
+	}
+
+	public void setTitlePlaceholder(String titlePlaceholder) {
+		this.titlePlaceholder = titlePlaceholder;
+	}
+
+	public String getContentPlaceholder() {
+		return contentPlaceholder;
+	}
+
+	public void setContentPlaceholder(String contentPlaceholder) {
+		this.contentPlaceholder = contentPlaceholder;
+	}
+
+	public String getNewAddress() {
+		return newAddress;
+	}
+
+	public void setNewAddress(String newAddress) {
+		this.newAddress = newAddress;
+	}
+
+	public boolean isSelelctAll() {
+		return selelctAll;
+	}
+
+	public void setSelelctAll(boolean selelctAll) {
+		this.selelctAll = selelctAll;
+	}
 }

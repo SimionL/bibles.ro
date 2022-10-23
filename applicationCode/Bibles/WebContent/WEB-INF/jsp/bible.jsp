@@ -105,9 +105,43 @@ function startListening() {
     	});
 	});
 
-function prepareAudioFacilities(){
+function onLoadSteps(){
 
  	try{
+
+		if('${bible.firstAccess}' === 'true'){
+			
+			var selectedProfile          = JSON.parse(localStorage.getItem('selectedProfile'));
+			var messagesEncapsulation    = JSON.parse(localStorage.getItem('messagesEncapsulation'));
+			var userEmail                = JSON.parse(localStorage.getItem('userEmail'));
+			var emailFrom                = JSON.parse(localStorage.getItem('emailFrom'));
+			var automatSendMessage       = JSON.parse(localStorage.getItem('automatSendMessage'));
+			
+			if(selectedProfile != null && selectedProfile != 'null' && selectedProfile != 'undefined'){
+				$('.selectedOldProfile').val(selectedProfile);
+			}
+
+			if(messagesEncapsulation != null && messagesEncapsulation != 'null' && messagesEncapsulation != 'undefined'){
+				$('.messagesEncapsulation').val(messagesEncapsulation);
+			}
+			
+			if(userEmail != null && userEmail != 'null' && userEmail != 'undefined'){
+				$('.userEmail').val(userEmail);
+			}
+			
+			if(emailFrom != null && emailFrom != 'null' && emailFrom != 'undefined'){
+				$('.emailFrom').val(emailFrom);
+			}
+			
+			if(automatSendMessage != null && automatSendMessage != 'null' && automatSendMessage != 'undefined'){
+				$('.automatSendMessage').val(automatSendMessage);
+			}
+			
+			$('.eventId').val(19);
+			$('#bibleForm').submit();
+		}
+		
+		localStorage.setItem('selectedProfile', JSON.stringify('${bible.selectedProfile}'));
 
  		if('${bible.usingVoice}' == 'true'){
 
@@ -245,9 +279,10 @@ div.tab button:hover {
 div.tab button.active {
     background-color: #39D951;
 }
+
 </style>
 </head>
-<body  onload="prepareAudioFacilities();setPopup('${bible.openPopup}', '${bible.bible}');">
+<body  onload="onLoadSteps();setPopup('${bible.openPopup}', '${bible.bible}');">
 
 <div class="tab">
   <button class="active">${bible.bible}</button>
@@ -260,12 +295,22 @@ div.tab button.active {
   <button id="thankYouTabId">${bible.thankYou}</button>
 </div>
 
-	<div align="center">
-		<c:if test="${not empty bible.error}">
-			<b><font color="red">${bible.error}</font></b>
-			<br><br>
-		</c:if>
-	</div>
+<div style = "position: absolute; left: 50%;">
+	<table>
+			<tr>
+				<td>
+					<c:if test="${not empty bible.error}">
+						<b><font color="red">${bible.error}</font></b>
+					</c:if>
+				</td>
+				<td>
+					<c:if test="${not empty bible.ok}">
+						<b><font color="green">${bible.ok}</font></b>
+					</c:if>
+				</td>
+			</tr>
+		</table>
+</div>
 
 	<form:form action="be_blessed" 
 			   modelAttribute="bible"
@@ -296,13 +341,121 @@ div.tab button.active {
 					value="${bible.popupInformation}"
 					id="popupInformationId" 
 				    hidden="true"
-		/>  
+		/>
+		
+		<form:input path="userEmail" 
+		    		type="text"
+					class="userEmail" 
+				    hidden="true"
+		/>
+
+		<form:input path="emailFrom" 
+		    		type="text"
+					class="emailFrom" 
+				    hidden="true"
+		/>
+
+		<form:input path="automatSendMessage" 
+		    		type="text"
+					class="automatSendMessage" 
+				    hidden="true"
+		/>
+
+		<form:input path="messagesEncapsulation" 
+		    		type="text"
+					class="messagesEncapsulation" 
+				    hidden="true"
+		/>
+
+		<form:input path="selectedOldProfile" 
+		    		type="text"
+					class="selectedOldProfile" 
+				    hidden="true"
+		/>
 
 		<div class="position">
 
 			<br>
 
-			<c:choose>
+		<table>
+			<tr>
+					   <td>
+						   <img
+							  src="<c:url 
+  					   	      value="/resources/images/back.jpg"/>"
+							  class="backButton" 
+							  id="backButton"
+							/>
+					
+						<img
+							src="<c:url 
+  					        value="/resources/images/next.jpg"/>"
+							class="nextButton" 
+							id="nextButton"
+						/>
+						
+						<img
+							src="<c:url 
+  							value="/resources/images/search.jpg"/>"
+  							class="searchButton"
+  							id="searchId"
+						  />
+					
+						<img
+							src="<c:url 
+  							value="/resources/images/newWindow.jpg"/>"
+  							class="newWindow"
+  							id="newWindowId"
+						  />
+						<img
+							src="<c:url 
+  							value="/resources/images/email.png"/>"
+  							style = "cursor: pointer"
+  							onclick="$('.eventId').val(18);$('#bibleForm').submit();"
+						  />
+						  <form:select path="selectedProfile" 
+											 items='${bible.profiles}'
+											 value='${bible.selectedProfile}'
+											 selected="true"
+											 onchange="$('.eventId').val(21);this.form.submit();" 
+											 cssStyle = "position: relative ; cursor: pointer ; bottom: 4.5px;"
+						  />
+					  </td>
+				</tr>
+			</table>
+			<table class="mainTable">
+				<tr>
+					<td>
+						<form:select path="history"
+			 			         
+					             	 cssStyle = "cursor: pointer;"
+					                 onchange="if (typeof(this.selectedIndex) != 'undefined' && $('select').val() != '${bible.searchHistory}'){$('.eventId').val(11);this.form.submit();}" 
+						 >
+    						<c:forEach items='${bible.historyMap}' var="hm">			
+        						<form:option value="${hm.value}">
+            					       ${hm.key}
+        						</form:option>                    
+    						</c:forEach>
+    					
+						 </form:select>
+                    </td>
+					<td>
+						 
+						 <form:input path="searchVerse" 
+									 type="text"
+									 cssStyle = "cursor: pointer;"
+									 placeholder='${bible.placeholderReference}'
+									 onkeydown="$('.eventId').val(7);if(event.keyCode==13){this.form.submit();};" 
+						 />
+					</td>
+				</tr>
+			</table>
+
+			<table class="mainTable">
+			
+				<tr>
+					<td colspan="1">
+					<c:choose>
 
 				<c:when test="${not empty bible.selectedVersion}">
 
@@ -328,8 +481,10 @@ div.tab button.active {
 				</c:otherwise>
 
 			</c:choose>
-
-			<c:choose>
+					</td>
+					
+					<td colspan="1">
+					<c:choose>
 
 				<c:when test="${not empty bible.selectedBook}">
 
@@ -354,8 +509,10 @@ div.tab button.active {
 				</c:otherwise>
 
 			</c:choose>
-
-			<c:choose>
+					</td>
+					
+					<td colspan="1">
+					<c:choose>
 
 				<c:when test="${not empty bible.selectedChapter}">
 
@@ -380,122 +537,88 @@ div.tab button.active {
 				</c:otherwise>
 
 			</c:choose>
+					</td>
+					
+					<td colspan="1">
+						<c:choose>
 
-			<c:choose>
+							<c:when test="${not empty bible.selectedVerse}">
 
-				<c:when test="${not empty bible.selectedVerse}">
+								<form:select path="selectedVerse" 
+											 items='${bible.verses}'
+											 value='${bible.selectedVerse}'
+											 selected="true"
+											 onchange="$('.eventId').val(6);this.form.submit();" 
+											 cssStyle = "cursor: pointer"
+								/>
 
-					<form:select path="selectedVerse" 
-								 items='${bible.verses}'
-								 value='${bible.selectedVerse}'
-								 selected="true"
-								 onchange="$('.eventId').val(6);this.form.submit();" 
-								 cssStyle = "cursor: pointer"
-					/>
+							</c:when>
 
-				</c:when>
+							<c:otherwise>
 
-				<c:otherwise>
-
-					<form:select path="selectedVerse" 
-							     items='${bible.verses}'
-								 onchange="$('.eventId').val(6);this.form.submit();" 
-								 cssStyle = "cursor: pointer"
-					/>
-
-				</c:otherwise>
-
-			</c:choose>
-			<br> <br>
-
-			<table>
+								<form:select path="selectedVerse" 
+										     items='${bible.verses}'
+											 onchange="$('.eventId').val(6);this.form.submit();" 
+											 cssStyle = "cursor: pointer"
+								/>
+							</c:otherwise>
+						</c:choose>
+					</td>
+				</tr>
 				<tr>
-					<td>
-						<img
-							src="<c:url 
-  							value="/resources/images/newWindow.jpg"/>"
-  							class="newWindow"
-  							id="newWindowId"
-						  />
-					  </td>
-					   <td>
-						   <img
-							  src="<c:url 
-  					   	      value="/resources/images/back.jpg"/>"
-							  class="backButton" 
-							  id="backButton"
-							/>
-						</td>
-			
-					<td>
-						<img
-							src="<c:url 
-  					        value="/resources/images/next.jpg"/>"
-							class="nextButton" 
-							id="nextButton"
+					<td colspan="4">
+						<form:input path="searchText" 
+									type="text"
+									cssClass = "searchField"
+									placeholder='${bible.searchByText.concat(": ").concat(bible.placeholderSuggestion)}'
+									onkeydown="if(event.keyCode==13 && validateSearch('${bible.selectVersion}')){$('.eventId').val(10);this.form.submit();};"
 						/>
 					</td>
 				</tr>
 			</table>
-
-			<br>
-									<form:input path="searchVerse" 
-												type="text" 
-												size="50%"
-												onkeydown="$('.eventId').val(7);if(event.keyCode==13){this.form.submit();};" 
-									/>
-
-	        <br><br>
-
-									<form:input path="searchText" 
-												type="text"
-												size="50%"
-												onkeydown="if(event.keyCode==13 && validateSearch('${bible.selectVersion}')){$('.eventId').val(10);this.form.submit();};"  
-
-									/>
-
-			<br><br>
-
-			 			<form:select path="history"
-			 			         
-					             	 cssStyle = "cursor: pointer;"
-					                 onchange="if (typeof(this.selectedIndex) != 'undefined' && $('select').val() != '${bible.searchHistory}'){$('.eventId').val(11);this.form.submit();}" 
-						 >
-    						<c:forEach items='${bible.historyMap}' var="hm">			
-        						<form:option value="${hm.value}">
-            					       ${hm.key}
-        						</form:option>                    
-    						</c:forEach>
-    					
-						 </form:select>
-
+			
 			<c:if test="${not empty bible.verseValue}">
               <font size='${bible.formFontSelected}'>
+				<br>
+				
+				<form:checkbox path="selectAll" 
+				               cssStyle = "cursor: pointer" 
+				               onchange="$('.eventId').val(20);this.form.submit();"/>
 				<br><br>
+				<c:forEach var="verse" items='${bible.verseValue}' varStatus="verseStatus">
 
-				<c:forEach var="verseMap" items='${bible.verseValue}'>
-
-					<c:if test="${not empty verseMap.key}">
-
+					<c:if test="${not empty verse}">
+					
+					
+					
+							<form:input path="verseValue[${verseStatus.index}].verse"
+		    		            		type="text"
+				                		hidden="true"
+		             		/>
+							
+							<form:checkbox path="verseValue[${verseStatus.index}].selected"
+								   	   	   	   cssStyle = "cursor: pointer"         
+							/>
+					
 						<c:choose>
 
 							<c:when test="${bible.wordWrap == 'true'}">
-								<span style="word-wrap: break-word;"> ${verseMap.key} </span>
+								<span style="word-wrap: break-word;"> ${verse.verse} </span>
 							</c:when>
 
 							<c:otherwise>
-								<span style="white-space: nowrap"> ${verseMap.key} </span>
+								<span style="white-space: nowrap"> ${verse.verse} </span>
 							</c:otherwise>
                         </c:choose>
 	
 					</c:if>
 					<br><br>
-					<c:if test="${(not empty verseMap.value) and (bible.displayReference == 'true')}">
+					<c:if test="${(not empty verse.references) and (bible.displayReference == 'true')}">
 			
 						  <c:out value='${bible.references}' />
 						  <br><br>
 			
-					      <c:forEach var="references" items="${verseMap.value}">
+					      <c:forEach var="references" items="${verse.references}">
 
 							<c:choose>
 
@@ -569,6 +692,11 @@ div.tab button.active {
 				};
 				myWindow.webkitEnterFullscreen();
 			  }
+			});
+
+			$("#searchId").click(function() {
+				$("#eventId").val(10);
+				$("#bibleForm").submit();
 			});
 
 			$("#churchTabId").click(function() {

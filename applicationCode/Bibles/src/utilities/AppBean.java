@@ -11,7 +11,7 @@ public final class AppBean {
 
 	private final transient TreeMap<Integer, ScreensaverTable> screensaverMap = new TreeMap<>();
 	private final transient Map<String, String> selectedImagesMap = new HashMap<>();
-	private transient int currentScreensaver = 0;
+	private int currentScreensaver = 0;
 	private transient String verseValue;
 	private transient int lastSettings = 1;
 	private transient boolean next;
